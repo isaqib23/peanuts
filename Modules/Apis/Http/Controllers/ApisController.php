@@ -4,13 +4,20 @@ namespace Modules\Apis\Http\Controllers;
 
 use Cartalyst\Sentinel\Checkpoints\NotActivatedException;
 use Cartalyst\Sentinel\Checkpoints\ThrottlingException;
+use Darryldecode\Cart\CartCollection;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Pipeline\Pipeline;
 use Illuminate\Routing\Controller;
 use Modules\Apis\Http\Requests\ProductRequest;
 use Modules\Apis\Http\Requests\ProductsRequest;
 use Modules\Apis\Http\Requests\SignupRequest;
+use Modules\Cart\Facades\Cart;
+use Modules\Cart\Http\Requests\StoreCartItemRequest;
+use Modules\Coupon\Exceptions\MaximumSpendException;
+use Modules\Coupon\Exceptions\MinimumSpendException;
 use Modules\Product\Entities\Product;
 use Modules\User\Contracts\Authentication;
 use Modules\User\Entities\Role;
@@ -120,5 +127,64 @@ class ApisController extends Controller
         return response()->json([
             'data' => $products,
         ]);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param \Modules\Apis\Http\Requests\StoreCartItemRequest $request
+     * @return \Modules\Cart\Cart
+     */
+    public function addToCart(\Modules\Apis\Http\Requests\StoreCartItemRequest $request)
+    {
+        Cart::store($request->product_id, $request->qty, $request->options ?? []);
+
+        return Cart::instance();
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param Request $request
+     * @return \Modules\Cart\Cart
+     */
+    public function updateCart(Request $request)
+    {
+        $cartItemId = $request->input('cart_id');
+        Cart::updateQuantity($cartItemId, request('qty'));
+
+        try {
+            resolve(Pipeline::class)
+                ->send(Cart::coupon())
+                ->through($this->checkers)
+                ->thenReturn();
+        } catch (MinimumSpendException | MaximumSpendException $e) {
+            Cart::removeCoupon();
+        }
+
+        return Cart::instance();
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param Request $request
+     * @return \Modules\Cart\Cart
+     */
+    public function destroyCart(Request $request)
+    {
+        $cartItemId = $request->input('cart_id');
+        Cart::remove($cartItemId);
+
+        return Cart::instance();
+    }
+
+    /**
+     * @param Request $request
+     * @return CartCollection
+     */
+    public function cart(Request $request)
+    {
+        return Cart::items();
     }
 }
