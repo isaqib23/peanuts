@@ -3,6 +3,7 @@
 
 <div class="row">
     <div class="col-md-8">
+        {{ Form::select('product_type', trans('product::attributes.product_type'), $errors, $types, $product) }}
         {{ Form::select('brand_id', trans('product::attributes.brand_id'), $errors, $brands, $product) }}
         {{ Form::select('categories', trans('product::attributes.categories'), $errors, $categories, $product, ['class' => 'selectize prevent-creation', 'multiple' => true]) }}
         {{ Form::select('tax_class_id', trans('product::attributes.tax_class_id'), $errors, $taxClasses, $product) }}

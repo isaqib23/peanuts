@@ -8,7 +8,10 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Apis\Http\Requests\ProductRequest;
+use Modules\Apis\Http\Requests\ProductsRequest;
 use Modules\Apis\Http\Requests\SignupRequest;
+use Modules\Product\Entities\Product;
 use Modules\User\Contracts\Authentication;
 use Modules\User\Entities\Role;
 use Modules\User\Events\CustomerRegistered;
@@ -94,5 +97,28 @@ class ApisController extends Controller
         if ($role->exists) {
             $this->auth->assignRole($user, $role);
         }
+    }
+
+    /**
+     * @param ProductsRequest $request
+     * @return JsonResponse
+     */
+    public function products(ProductsRequest $request){
+        $status = ($request->input('status') == 'simple') ? 0 :1;
+        $products = Product::filterByType($status);
+        return response()->json([
+            'data' => $products,
+        ]);
+    }
+
+    /**
+     * @param ProductRequest $request
+     * @return JsonResponse
+     */
+    public function product(ProductRequest $request){
+        $products = Product::getProductById($request->input('id'));
+        return response()->json([
+            'data' => $products,
+        ]);
     }
 }

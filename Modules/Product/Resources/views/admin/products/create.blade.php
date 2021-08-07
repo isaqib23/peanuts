@@ -16,3 +16,15 @@
 @endsection
 
 @include('product::admin.products.partials.shortcuts')
+@push('scripts')
+    <script type="text/javascript">
+        $( "#basic_information ul li:nth-child(3)" ).hide();
+        $(document).find("#product_type").change(function () {
+            if($(this).val() == 1){
+                $( "#basic_information ul li:nth-child(3)" ).show();
+            }else{
+                $( "#basic_information ul li:nth-child(3)" ).hide();
+            }
+        })
+    </script>
+@endpush

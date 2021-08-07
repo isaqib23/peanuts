@@ -4,6 +4,7 @@ namespace Modules\Product\Admin;
 
 use Modules\Admin\Ui\Tab;
 use Modules\Admin\Ui\Tabs;
+use Modules\Product\Entities\Product;
 use Modules\Tag\Entities\Tag;
 use Modules\Brand\Entities\Brand;
 use Modules\Tax\Entities\TaxClass;
@@ -17,6 +18,7 @@ class ProductTabs extends Tabs
             ->active()
             ->add($this->general())
             ->add($this->price())
+            ->add($this->lottery())
             ->add($this->inventory())
             ->add($this->images())
             ->add($this->downloads())
@@ -34,12 +36,16 @@ class ProductTabs extends Tabs
         return tap(new Tab('general', trans('product::products.tabs.general')), function (Tab $tab) {
             $tab->active();
             $tab->weight(5);
-            $tab->fields(['name', 'description', 'brand_id', 'tax_class_id', 'is_active']);
+            $tab->fields(['name', 'description', 'brand_id', 'tax_class_id', 'is_active',"product_type"]);
             $tab->view('product::admin.products.tabs.general', [
                 'brands' => $this->brands(),
                 'categories' => Category::treeList(),
                 'taxClasses' => $this->taxClasses(),
                 'tags' => Tag::list(),
+                'types' => [
+                    "Simple Product",
+                    "Lottery Product"
+                ]
             ]);
         });
     }
@@ -52,6 +58,31 @@ class ProductTabs extends Tabs
     private function taxClasses()
     {
         return TaxClass::list()->prepend(trans('admin::admin.form.please_select'), '');
+    }
+
+    private function lottery()
+    {
+        return tap(new Tab('Lottery', trans('product::products.tabs.lottery')), function (Tab $tab) {
+            $tab->weight(10);
+
+            $tab->fields([
+                'min_ticket',
+                'max_ticket',
+                'max_ticket_user',
+                'winner',
+                'initial_price',
+                'bottom_price',
+                'reduce_price',
+                'current_price',
+                'link_product',
+                'from_date',
+                'to_date',
+            ]);
+
+            $tab->view('product::admin.products.tabs.lottery',[
+                'link_product' => $this->link_products()
+            ]);
+        });
     }
 
     private function price()
@@ -140,5 +171,9 @@ class ProductTabs extends Tabs
             $tab->fields(['new_from', 'new_to']);
             $tab->view('product::admin.products.tabs.additional');
         });
+    }
+
+    private function link_products(){
+        return (new \Modules\Product\Entities\Product)->linkProducts()->pluck("name","id")->prepend(trans('admin::admin.form.please_select'), '');
     }
 }

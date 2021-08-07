@@ -61,6 +61,11 @@ trait HasCrudActions
 
         $this->searchable($entity);
 
+        $allowedRoutes = ["admin.products.update","admin.products.store"];
+        if(in_array($this->getRequest('store')->route()->getName(), $allowedRoutes)){
+            updateLotteryProduct($entity,$this->getRequest('store')->all(), "store");
+        }
+
         if (method_exists($this, 'redirectTo')) {
             return $this->redirectTo($entity);
         }
@@ -119,6 +124,11 @@ trait HasCrudActions
         );
 
         $this->searchable($entity);
+
+        $allowedRoutes = ["admin.products.update","admin.products.store"];
+        if(in_array($this->getRequest('update')->route()->getName(), $allowedRoutes)){
+            updateLotteryProduct($entity,$this->getRequest('store')->all(), 'update');
+        }
 
         if (method_exists($this, 'redirectTo')) {
             return $this->redirectTo($entity)

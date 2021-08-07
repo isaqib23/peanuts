@@ -36,5 +36,6 @@
     "Import": true,
     "Address": true,
     "Sms": true,
-    "Apis": true
+    "Apis": true,
+    "Suppliers": true
 }

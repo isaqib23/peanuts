@@ -60,6 +60,7 @@ class Product extends Model
         'is_active',
         'new_from',
         'new_to',
+        'product_type'
     ];
 
     /**
@@ -201,6 +202,11 @@ class Product extends Model
     public function brand()
     {
         return $this->belongsTo(Brand::class)->withDefault();
+    }
+
+    public function lottery()
+    {
+        return $this->hasOne(ProductLottery::class)->withDefault();
     }
 
     public function categories()
@@ -645,5 +651,27 @@ class Product extends Model
     public function searchColumns()
     {
         return ['name'];
+    }
+
+    public function linkProducts(){
+        return static::where("product_type","0")->select( 'id')->withName()->get();
+    }
+
+    public static function filterByType($type)
+    {
+        return static::select('*')
+            ->withName()
+            ->with(['brand','categories','lottery'])
+            ->where('product_type', $type)
+            ->get();
+    }
+
+    public static function getProductById($id)
+    {
+        return static::select('*')
+            ->withName()
+            ->with(['brand','categories','lottery'])
+            ->where('id', $id)
+            ->get();
     }
 }
