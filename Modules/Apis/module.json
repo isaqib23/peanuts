@@ -1,0 +1,13 @@
+{
+    "name": "Apis",
+    "alias": "apis",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Apis\\Providers\\ApisServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

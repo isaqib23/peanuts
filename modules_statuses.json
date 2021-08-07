@@ -35,5 +35,6 @@
     "Tag": true,
     "Import": true,
     "Address": true,
-    "Sms": true
+    "Sms": true,
+    "Apis": true
 }
