@@ -3,6 +3,7 @@
 namespace Modules\Apis\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ProductRequest extends BaseFormRequest
 {
@@ -15,6 +16,7 @@ class ProductRequest extends BaseFormRequest
     {
         return [
             'id' => 'required|integer|exists:products,id',
+            'status' => ['required', Rule::in(["simple","lottery"])],
         ];
     }
 

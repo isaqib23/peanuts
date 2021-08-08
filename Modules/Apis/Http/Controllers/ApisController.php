@@ -18,12 +18,15 @@ use Modules\Cart\Facades\Cart;
 use Modules\Cart\Http\Requests\StoreCartItemRequest;
 use Modules\Checkout\Events\OrderPlaced;
 use Modules\Checkout\Services\OrderService;
+use Modules\Coupon\Checkers\MaximumSpend;
+use Modules\Coupon\Checkers\MinimumSpend;
 use Modules\Coupon\Exceptions\MaximumSpendException;
 use Modules\Coupon\Exceptions\MinimumSpendException;
 use Modules\Order\Entities\Order;
 use Modules\Order\Http\Requests\StoreOrderRequest;
 use Modules\Payment\Facades\Gateway;
 use Modules\Product\Entities\Product;
+use Modules\Product\Entities\ProductLottery;
 use Modules\User\Contracts\Authentication;
 use Modules\User\Entities\Role;
 use Modules\User\Events\CustomerRegistered;
@@ -33,6 +36,11 @@ use Modules\User\Services\CustomerService;
 
 class ApisController extends Controller
 {
+    private $checkers = [
+        MinimumSpend::class,
+        MaximumSpend::class,
+    ];
+
     /**
      * @var Authentication
      */
@@ -119,6 +127,15 @@ class ApisController extends Controller
     public function products(ProductsRequest $request){
         $status = ($request->input('status') == 'simple') ? 0 :1;
         $products = Product::filterByType($status);
+        if($products->count() > 0){
+            foreach ($products as $key => $value){
+                if($value->product_type == 1){
+                    $products[$key]->lottery = ProductLottery::where('product_id',$value->id)->first();
+                }else{
+                    $products[$key]->lottery = ProductLottery::where('link_product',$value->id)->first();
+                }
+            }
+        }
         return response()->json([
             'data' => $products,
         ]);
@@ -129,9 +146,15 @@ class ApisController extends Controller
      * @return JsonResponse
      */
     public function product(ProductRequest $request){
-        $products = Product::getProductById($request->input('id'));
+        if($request->input('status') == 'simple'){
+            $product = Product::getProductById($request->input('id'));
+            $product->lottery = ProductLottery::where('link_product',$request->input('id'))->first();
+        }else{
+            $product = Product::getProductById($request->input('id'));
+            $product->lottery = ProductLottery::where('product_id',$request->input('id'))->first();
+        }
         return response()->json([
-            'data' => $products,
+            'data' => $product,
         ]);
     }
 

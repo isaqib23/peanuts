@@ -204,11 +204,6 @@ class Product extends Model
         return $this->belongsTo(Brand::class)->withDefault();
     }
 
-    public function lottery()
-    {
-        return $this->hasOne(ProductLottery::class)->withDefault();
-    }
-
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'product_categories');
@@ -659,9 +654,17 @@ class Product extends Model
 
     public static function filterByType($type)
     {
+        if($type == 0){
+            return static::select('*')
+                ->withName()
+                ->with(['brand','categories'])
+                ->where('product_type', $type)
+                ->join('product_lottery', 'products.id', '=', 'product_lottery.link_product')
+                ->get();
+        }
         return static::select('*')
             ->withName()
-            ->with(['brand','categories','lottery'])
+            ->with(['brand','categories'])
             ->where('product_type', $type)
             ->get();
     }
@@ -670,8 +673,8 @@ class Product extends Model
     {
         return static::select('*')
             ->withName()
-            ->with(['brand','categories','lottery'])
+            ->with(['brand','categories'])
             ->where('id', $id)
-            ->get();
+            ->first();
     }
 }
