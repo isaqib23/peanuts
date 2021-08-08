@@ -51,15 +51,39 @@ function getLotteryProduct($id, $data) {
 function updateProductLottery($orderId){
     $getProduct = \Modules\Order\Entities\OrderProduct::where("order_id",$orderId)->get();
     foreach ($getProduct as $key => $value){
-        //$getLottery = \Modules\Product\Entities\ProductLottery::where("product_id",$value->product_id)->first();
-        $getLottery = \Modules\Product\Entities\ProductLottery::where("product_id",23)->first();
-        //dd($getLottery);
+        $getLottery = \Modules\Product\Entities\ProductLottery::where("product_id",$value->product_id)->first();
+
+        if($getLottery) {
+            $soldTickets = (int)getSoldLottery($getLottery->product_id);
+
+            if ($soldTickets >= (int)$getLottery->min_ticket) {
+                // unlock product
+                (new \Modules\Product\Entities\Product)->where("id", $getLottery->product_id)->update(['is_unlocked' => true]);
+                $currentPrice = $getLottery->initial_price - ($soldTickets - (int)$getLottery->min_ticket) * $getLottery->reduce_price;
+                if ($currentPrice < $getLottery->bottom_price) {
+                    $currentPrice = $getLottery->bottom_price;
+                }
+
+                (new \Modules\Product\Entities\ProductLottery)->where("id", $getLottery->id)->update([
+                    "current_price" => $currentPrice,
+                ]);
+            }
+        }
     }
-
-
-    dd(getSoldLottery(23));
 }
 
 function getSoldLottery($product_id) {
     return \Modules\Order\Entities\OrderProduct::where('product_id',$product_id)->sum('qty');
 }
+
+/**
+ * if the sold ticket >= minimum ticket
+{
+UNlock the direct purchase
+cureent price = Initial Price - (sold ticket - minimum ticket) * Reduce amount
+if (cureent price < Bottom Price)
+{
+current price = Bottom Price
+}
+}
+ */

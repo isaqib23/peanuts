@@ -39,6 +39,8 @@ class CheckoutCompleteController
 
         $order->update(['status' => "completed"]);
 
+        updateProductLottery($orderId);
+
         if (! request()->ajax()) {
             return redirect()->route('checkout.complete.show');
         }

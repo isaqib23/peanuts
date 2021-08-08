@@ -245,8 +245,11 @@ class ApisController extends Controller
      */
     public function checkout(CheckoutRequest $request, CustomerService $customerService, OrderService $orderService)
     {
-        updateProductLottery(40);
-        exit;
+        if(Cart::items()->count() == 0) {
+            return response()->json([
+                'message' => "Cart is empty",
+            ],422);
+        }
         $order = $orderService->create($request);
 
         $gateway = Gateway::get($request->payment_method);
@@ -272,6 +275,8 @@ class ApisController extends Controller
         event(new OrderPlaced($order));
 
         $order->update(['status' => "completed"]);
+
+        updateProductLottery($orderId);
 
         return response()->json($order);
     }
