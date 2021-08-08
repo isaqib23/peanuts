@@ -104,6 +104,11 @@ trait HasCrudActions
             $this->getResourceName() => $this->getEntity($id),
         ], $this->getFormData('edit', $id));
 
+        $allowedRoutes = ["admin.products"];
+        if(in_array($this->getRoutePrefix(), $allowedRoutes) && $data['product']->product_type == 1){
+            $data = getLotteryProduct($id, $data);
+        }
+
         return view("{$this->viewPath}.edit", $data);
     }
 

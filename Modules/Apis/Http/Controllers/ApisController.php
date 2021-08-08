@@ -16,14 +16,20 @@ use Modules\Apis\Http\Requests\ProductsRequest;
 use Modules\Apis\Http\Requests\SignupRequest;
 use Modules\Cart\Facades\Cart;
 use Modules\Cart\Http\Requests\StoreCartItemRequest;
+use Modules\Checkout\Events\OrderPlaced;
+use Modules\Checkout\Services\OrderService;
 use Modules\Coupon\Exceptions\MaximumSpendException;
 use Modules\Coupon\Exceptions\MinimumSpendException;
+use Modules\Order\Entities\Order;
+use Modules\Order\Http\Requests\StoreOrderRequest;
+use Modules\Payment\Facades\Gateway;
 use Modules\Product\Entities\Product;
 use Modules\User\Contracts\Authentication;
 use Modules\User\Entities\Role;
 use Modules\User\Events\CustomerRegistered;
 use Modules\User\Http\Requests\LoginRequest;
 use Modules\User\Http\Requests\RegisterRequest;
+use Modules\User\Services\CustomerService;
 
 class ApisController extends Controller
 {
@@ -185,6 +191,53 @@ class ApisController extends Controller
      */
     public function cart(Request $request)
     {
-        return Cart::items();
+        if(Cart::items()->count() > 0){
+            $cartArray = Cart::toArray();
+            foreach ($cartArray as $key => $value){
+                if($key == "items") {
+                    $cartArray["items"] = array_values($value->toArray());
+                }
+            }
+
+            return $cartArray;
+        }
+
+        return [];
+    }
+
+    /**
+     * @param StoreOrderRequest $request
+     * @param CustomerService $customerService
+     * @param OrderService $orderService
+     * @return JsonResponse
+     */
+    public function checkout(StoreOrderRequest $request, CustomerService $customerService, OrderService $orderService)
+    {
+        $order = $orderService->create($request);
+
+        $gateway = Gateway::get($request->payment_method);
+
+        try {
+            $response = $gateway->purchase($order, $request);
+        } catch (Exception $e) {
+            $orderService->delete($order);
+
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 403);
+        }
+
+        $orderId = json_encode($response);
+        $orderId = json_decode($orderId, true);
+        $orderId = $orderId["orderId"];
+
+        $order = Order::findOrFail($orderId);
+
+        $order->storeTransaction($response);
+
+        event(new OrderPlaced($order));
+
+
+        return response()->json($order);
     }
 }

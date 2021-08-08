@@ -39,21 +39,4 @@ class ProductController
      */
     protected $validation = SaveProductRequest::class;
 
-    /**
-     * ProductController constructor.
-     * @param Request $request
-     */
-    public function __construct(Request $request)
-    {
-        /*$allowedRoutes = ["admin.products.update","admin.products.store"];
-        if(in_array($request->route()->getName(), $allowedRoutes)){
-            if($request->input('product_type') == 1){
-                return $this->updateLotteryProduct($request);
-            }
-        }*/
-    }
-
-    public function updateLotteryProduct($request){
-        dd($request->all());
-    }
 }

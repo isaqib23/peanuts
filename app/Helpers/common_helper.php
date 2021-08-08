@@ -28,3 +28,22 @@ function updateLotteryProduct($product,$data,$method){
         (new \Modules\Product\Entities\ProductLottery())->where("product_id",$product->id)->delete();
     }
 }
+
+function getLotteryProduct($id, $data) {
+    $lottery = (new \Modules\Product\Entities\ProductLottery)->where("product_id",$id)->first();
+
+    $data["product"]->product_id = $lottery->product_id;
+    $data["product"]->min_ticket = $lottery->min_ticket;
+    $data["product"]->max_ticket = $lottery->max_ticket;
+    $data["product"]->max_ticket_user = $lottery->max_ticket_user;
+    $data["product"]->winner = $lottery->winner;
+    $data["product"]->initial_price = $lottery->initial_price;
+    $data["product"]->bottom_price = $lottery->bottom_price;
+    $data["product"]->reduce_price = $lottery->reduce_price;
+    $data["product"]->current_price = $lottery->current_price;
+    $data["product"]->link_product = $lottery->link_product;
+    $data["product"]->from_date = $lottery->from_date;
+    $data["product"]->to_date = $lottery->to_date;
+
+    return $data;
+}
