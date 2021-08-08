@@ -86,7 +86,7 @@ class OrderService
 
     private function addShippingMethodToCart($request)
     {
-        if (! Cart::allItemsAreVirtual() && ! Cart::hasShippingMethod()) {
+        if (! Cart::allItemsAreVirtual() && ! Cart::hasShippingMethod() && !is_null($request->shipping_method)) {
             Cart::addShippingMethod(ShippingMethod::get($request->shipping_method));
         }
     }

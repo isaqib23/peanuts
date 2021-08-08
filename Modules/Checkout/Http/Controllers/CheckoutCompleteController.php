@@ -37,6 +37,8 @@ class CheckoutCompleteController
 
         event(new OrderPlaced($order));
 
+        $order->update(['status' => "completed"]);
+
         if (! request()->ajax()) {
             return redirect()->route('checkout.complete.show');
         }

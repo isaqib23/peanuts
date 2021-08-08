@@ -47,3 +47,19 @@ function getLotteryProduct($id, $data) {
 
     return $data;
 }
+
+function updateProductLottery($orderId){
+    $getProduct = \Modules\Order\Entities\OrderProduct::where("order_id",$orderId)->get();
+    foreach ($getProduct as $key => $value){
+        //$getLottery = \Modules\Product\Entities\ProductLottery::where("product_id",$value->product_id)->first();
+        $getLottery = \Modules\Product\Entities\ProductLottery::where("product_id",23)->first();
+        //dd($getLottery);
+    }
+
+
+    dd(getSoldLottery(23));
+}
+
+function getSoldLottery($product_id) {
+    return \Modules\Order\Entities\OrderProduct::where('product_id',$product_id)->sum('qty');
+}

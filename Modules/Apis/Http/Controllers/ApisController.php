@@ -12,6 +12,7 @@ use Illuminate\Http\Response;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Routing\Controller;
 use Modules\Address\Entities\DefaultAddress;
+use Modules\Apis\Http\Requests\CheckoutRequest;
 use Modules\Apis\Http\Requests\ProductRequest;
 use Modules\Apis\Http\Requests\ProductsRequest;
 use Modules\Apis\Http\Requests\SignupRequest;
@@ -138,6 +139,8 @@ class ApisController extends Controller
                 }else{
                     $products[$key]->lottery = ProductLottery::where('link_product',$value->id)->first();
                 }
+
+                $products[$key]->sold_items = getSoldLottery($value->id);
             }
         }
         return response()->json([
@@ -157,6 +160,8 @@ class ApisController extends Controller
             $lottery = ProductLottery::where('product_id',$request->input('id'))->first();
             $product = Product::getProductById($lottery->link_product);
         }
+
+        $product->sold_items = getSoldLottery($product->id);
         return response()->json([
             'data' => $product,
         ]);
@@ -233,13 +238,15 @@ class ApisController extends Controller
     }
 
     /**
-     * @param StoreOrderRequest $request
+     * @param CheckoutRequest $request
      * @param CustomerService $customerService
      * @param OrderService $orderService
      * @return JsonResponse
      */
-    public function checkout(StoreOrderRequest $request, CustomerService $customerService, OrderService $orderService)
+    public function checkout(CheckoutRequest $request, CustomerService $customerService, OrderService $orderService)
     {
+        updateProductLottery(40);
+        exit;
         $order = $orderService->create($request);
 
         $gateway = Gateway::get($request->payment_method);
@@ -264,6 +271,7 @@ class ApisController extends Controller
 
         event(new OrderPlaced($order));
 
+        $order->update(['status' => "completed"]);
 
         return response()->json($order);
     }
@@ -273,12 +281,11 @@ class ApisController extends Controller
      * @return JsonResponse
      */
     public function checkoutData(Request $request) {
-        $user = User::where($request->input('user_id'))->first();
-        dd($user);
+        $user = User::where("id",$request->input('user_id'))->first();
         $data = [
             'countries' => Country::supported(),
             'gateways' => Gateway::all(),
-            'defaultAddress' => auth()->user()->addresses ?? new DefaultAddress,
+            'defaultAddress' => $user->addresses ?? new DefaultAddress,
         ];
 
         return response()->json($data);
