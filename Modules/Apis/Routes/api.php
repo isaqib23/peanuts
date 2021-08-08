@@ -11,3 +11,4 @@ Route::post('update_cart', 'ApisController@updateCart')->name('updateCart');
 Route::post('delete_cart', 'ApisController@destroyCart')->name('destroyCart');
 Route::post('show_cart', 'ApisController@cart')->name('cart');
 Route::post('checkout', 'ApisController@checkout')->name('checkout');
+Route::post('checkout_data', 'ApisController@checkoutData')->name('checkoutData');

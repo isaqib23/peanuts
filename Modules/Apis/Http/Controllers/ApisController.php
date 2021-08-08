@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Routing\Controller;
+use Modules\Address\Entities\DefaultAddress;
 use Modules\Apis\Http\Requests\ProductRequest;
 use Modules\Apis\Http\Requests\ProductsRequest;
 use Modules\Apis\Http\Requests\SignupRequest;
@@ -24,11 +25,14 @@ use Modules\Coupon\Exceptions\MaximumSpendException;
 use Modules\Coupon\Exceptions\MinimumSpendException;
 use Modules\Order\Entities\Order;
 use Modules\Order\Http\Requests\StoreOrderRequest;
+use Modules\Page\Entities\Page;
 use Modules\Payment\Facades\Gateway;
 use Modules\Product\Entities\Product;
 use Modules\Product\Entities\ProductLottery;
+use Modules\Support\Country;
 use Modules\User\Contracts\Authentication;
 use Modules\User\Entities\Role;
+use Modules\User\Entities\User;
 use Modules\User\Events\CustomerRegistered;
 use Modules\User\Http\Requests\LoginRequest;
 use Modules\User\Http\Requests\RegisterRequest;
@@ -148,10 +152,10 @@ class ApisController extends Controller
     public function product(ProductRequest $request){
         if($request->input('status') == 'simple'){
             $product = Product::getProductById($request->input('id'));
-            $product->lottery = ProductLottery::where('link_product',$request->input('id'))->first();
+            $product->lottery = ProductLottery::where('product_id',$request->input('id'))->first();
         }else{
             $product = Product::getProductById($request->input('id'));
-            $product->lottery = ProductLottery::where('product_id',$request->input('id'))->first();
+            $product->lottery = ProductLottery::where('link_product',$request->input('id'))->first();
         }
         return response()->json([
             'data' => $product,
@@ -262,5 +266,21 @@ class ApisController extends Controller
 
 
         return response()->json($order);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function checkoutData(Request $request) {
+        $user = User::where($request->input('user_id'))->first();
+        dd($user);
+        $data = [
+            'countries' => Country::supported(),
+            'gateways' => Gateway::all(),
+            'defaultAddress' => auth()->user()->addresses ?? new DefaultAddress,
+        ];
+
+        return response()->json($data);
     }
 }
