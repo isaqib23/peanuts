@@ -14,7 +14,7 @@ class AddTypeToLockTable extends Migration
     public function up()
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->enum('is_unlocked',[false,true])->nullable();
+            $table->enum('is_unlocked',["false","true"])->nullable();
         });
     }
 

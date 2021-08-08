@@ -58,7 +58,7 @@ function updateProductLottery($orderId){
 
             if ($soldTickets >= (int)$getLottery->min_ticket) {
                 // unlock product
-                (new \Modules\Product\Entities\Product)->where("id", $getLottery->product_id)->update(['is_unlocked' => true]);
+                (new \Modules\Product\Entities\Product)->where("id", $getLottery->product_id)->update(['is_unlocked' => "true"]);
                 $currentPrice = $getLottery->initial_price - ($soldTickets - (int)$getLottery->min_ticket) * $getLottery->reduce_price;
                 if ($currentPrice < $getLottery->bottom_price) {
                     $currentPrice = $getLottery->bottom_price;
