@@ -60,7 +60,8 @@ class Product extends Model
         'is_active',
         'new_from',
         'new_to',
-        'product_type'
+        'product_type',
+        'is_unlocked'
     ];
 
     /**

@@ -175,6 +175,12 @@ class ApisController extends Controller
      */
     public function addToCart(\Modules\Apis\Http\Requests\StoreCartItemRequest $request)
     {
+        $getLottery = \Modules\Product\Entities\ProductLottery::where("product_id",$request->product_id)->first();
+        if($getLottery && ($request->qty > (int)$getLottery->min_ticket)){
+            return response()->json([
+                'message' => "You can buy ".(int)$getLottery->min_ticket." items at once for this product",
+            ],422);
+        }
         Cart::store($request->product_id, $request->qty, $request->options ?? []);
 
         return Cart::instance();
@@ -188,6 +194,13 @@ class ApisController extends Controller
      */
     public function updateCart(Request $request)
     {
+        $getLottery = \Modules\Product\Entities\ProductLottery::where("product_id",$request->product_id)->first();
+        if($getLottery && ($request->qty > (int)$getLottery->min_ticket)){
+            return response()->json([
+                'message' => "You can buy ".(int)$getLottery->min_ticket." items at once for this product",
+            ],422);
+        }
+
         $cartItemId = $request->input('cart_id');
         Cart::updateQuantity($cartItemId, request('qty'));
 
