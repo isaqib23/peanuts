@@ -152,10 +152,10 @@ class ApisController extends Controller
     public function product(ProductRequest $request){
         if($request->input('status') == 'simple'){
             $lottery = ProductLottery::where('link_product',$request->input('id'))->first();
-            $product = Product::getProductById($lottery->link_product);
+            $product = Product::getProductById($lottery->product_id);
         }else{
             $lottery = ProductLottery::where('product_id',$request->input('id'))->first();
-            $product = Product::getProductById($lottery->product_id);
+            $product = Product::getProductById($lottery->link_product);
         }
         return response()->json([
             'data' => $product,
