@@ -190,6 +190,14 @@ class ApisController extends Controller
 
         $user = User::where("id",$request->input('user_id'))->first();
 
+        $options = $request->options ?? [];
+
+        \DB::table("user_cart")->insert([
+            "user_id"       => $request->input('user_id'),
+            "qty"           => $request->qty,
+            "product_id"    => $request->product_id,
+            "options"       => json_encode($options),
+        ]);
         $user->wishlist()->detach($request->product_id);
 
         return Cart::session($request->input('user_id'))->instance();
@@ -245,8 +253,14 @@ class ApisController extends Controller
      */
     public function cart(Request $request)
     {
-        if(Cart::session($request->input('user_id'))->items()->count() > 0){
-            $cartArray = Cart::session($request->input('user_id'))->toArray();
+        Cart::clear();
+        $userCart = \DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
+        if(!is_null($userCart)){
+            foreach ($userCart as $cart) {
+                Cart::store($cart->product_id, $cart->qty, json_decode($cart->options) ?? []);
+            }
+
+            $cartArray = Cart::toArray();
             foreach ($cartArray as $key => $value){
                 if($key == "items") {
                     $cartArray["items"] = array_values($value->toArray());
