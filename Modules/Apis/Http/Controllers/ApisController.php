@@ -236,9 +236,11 @@ class ApisController extends Controller
         if(!is_null($userCart)) {
             foreach ($userCart as $cart) {
                 $qty = $cart->qty;
+
                 if($cart->product_id == $request->input('product_id')){
-                    $qty = request('qty');
+                    $qty += request('qty');
                 }
+                
                 Cart::store($cart->product_id, $qty, json_decode($cart->options) ?? []);
             }
         }
