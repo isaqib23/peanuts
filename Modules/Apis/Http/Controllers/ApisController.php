@@ -135,9 +135,9 @@ class ApisController extends Controller
         if($products->count() > 0){
             foreach ($products as $key => $value){
                 if($value->product_type == 1){
-                    $products[$key]->lottery = ProductLottery::where('product_id',$value->id)->first();
-                }else{
                     $products[$key]->lottery = ProductLottery::where('link_product',$value->id)->first();
+                }else{
+                    $products[$key]->lottery = ProductLottery::where('product_id',$value->id)->first();
                 }
 
                 $products[$key]->sold_items = getSoldLottery($value->id);
