@@ -656,19 +656,18 @@ class Product extends Model
     public static function filterByType($type)
     {
         if($type == 0){
-            return static::select('*')
+            return static::select('products.*')
                 ->withName()
                 ->with(['brand','categories'])
                 ->where('product_type', $type)
-                ->wherenull('deleted_at')
                 ->join('product_lottery', 'products.id', '=', 'product_lottery.link_product')
                 ->get();
         }
-        return static::select('*')
+        return static::select('products.*')
             ->withName()
             ->with(['brand','categories'])
             ->where('product_type', $type)
-            ->wherenull('deleted_at')
+            ->join('product_lottery', 'products.id', '=', 'product_lottery.product_id')
             ->get();
     }
 

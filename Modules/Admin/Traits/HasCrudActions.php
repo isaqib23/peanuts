@@ -3,6 +3,7 @@
 namespace Modules\Admin\Traits;
 
 use Illuminate\Http\Request;
+use Modules\Product\Entities\ProductLottery;
 use Modules\Support\Search\Searchable;
 use Modules\Admin\Ui\Facades\TabManager;
 
@@ -152,6 +153,12 @@ trait HasCrudActions
      */
     public function destroy($ids)
     {
+        $allowedRoutes = ["admin.products"];
+        if(in_array($this->getRoutePrefix(), $allowedRoutes)){
+            ProductLottery::whereIn('product_id', explode(',', $ids))->delete();
+            ProductLottery::whereIn('link_product', explode(',', $ids))->delete();
+        }
+        //admin.products.destroy
         $this->getModel()
             ->withoutGlobalScope('active')
             ->whereIn('id', explode(',', $ids))
