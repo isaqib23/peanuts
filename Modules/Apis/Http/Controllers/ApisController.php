@@ -341,6 +341,7 @@ class ApisController extends Controller
 
         updateProductLottery($orderId);
 
+        $userCart = \DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
         return response()->json($order);
     }
 
