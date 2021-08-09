@@ -12,3 +12,6 @@ Route::post('delete_cart', 'ApisController@destroyCart')->name('destroyCart');
 Route::post('show_cart', 'ApisController@cart')->name('cart');
 Route::post('checkout', 'ApisController@checkout')->name('checkout');
 Route::post('checkout_data', 'ApisController@checkoutData')->name('checkoutData');
+Route::post('add_to_wishlist', 'ApisController@addToWishList')->name('addToWishList');
+Route::post('wishlist', 'ApisController@wishlist')->name('wishlist');
+Route::post('destroy_wishlist_item', 'ApisController@destroyWishlistItem')->name('destroyWishlistItem');

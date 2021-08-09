@@ -20,6 +20,7 @@ use Modules\FlashSale\Entities\FlashSale;
 use Modules\Support\Eloquent\Translatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Attribute\Entities\ProductAttribute;
+use Modules\User\Entities\User;
 
 class Product extends Model
 {

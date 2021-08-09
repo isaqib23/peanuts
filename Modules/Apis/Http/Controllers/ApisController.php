@@ -141,6 +141,7 @@ class ApisController extends Controller
                 }
 
                 $products[$key]->sold_items = getSoldLottery($value->id);
+                $products[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
             }
         }
         return response()->json([
@@ -164,6 +165,7 @@ class ApisController extends Controller
         }
 
         $product->sold_items = getSoldLottery($product->id);
+        $product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
         return response()->json([
             'data' => $product,
         ]);
@@ -185,6 +187,10 @@ class ApisController extends Controller
         }
 
         Cart::session($request->input('user_id'))->store($request->product_id, $request->qty, $request->options ?? []);
+
+        $user = User::where("id",$request->input('user_id'))->first();
+
+        $user->wishlist()->detach($request->product_id);
 
         return Cart::session($request->input('user_id'))->instance();
     }
@@ -308,6 +314,63 @@ class ApisController extends Controller
             'gateways' => Gateway::all(),
             'defaultAddress' => $user->addresses ?? new DefaultAddress,
         ];
+
+        return response()->json($data);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function addToWishList(Request $request)
+    {
+        $user = User::where("id",$request->input('user_id'))->first();
+
+        if (! $user->wishlistHas(request('productId'))) {
+            $user->wishlist()->attach(request('productId'));
+        }
+
+        $data = $user
+            ->wishlist()
+            ->with('files')
+            ->latest()
+            ->get();
+
+        return response()->json($data);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function destroyWishlistItem(Request $request)
+    {
+        $user = User::where("id",$request->input('user_id'))->first();
+        $productId = request('productId');
+
+        $user->wishlist()->detach($productId);
+
+        $data = $user
+            ->wishlist()
+            ->with('files')
+            ->latest()
+            ->get();
+
+        return response()->json($data);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function wishlist(Request $request)
+    {
+        $user = User::where("id",$request->input('user_id'))->first();
+        $data = $user
+            ->wishlist()
+            ->with('files')
+            ->latest()
+            ->get();
 
         return response()->json($data);
     }

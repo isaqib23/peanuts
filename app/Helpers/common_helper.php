@@ -76,14 +76,11 @@ function getSoldLottery($product_id) {
     return \Modules\Order\Entities\OrderProduct::where('product_id',$product_id)->sum('qty');
 }
 
-/**
- * if the sold ticket >= minimum ticket
-{
-UNlock the direct purchase
-cureent price = Initial Price - (sold ticket - minimum ticket) * Reduce amount
-if (cureent price < Bottom Price)
-{
-current price = Bottom Price
+function isAddedToWishlist($userId, $productId){
+    $wishlist = \DB::table('wish_lists')->where([
+        "user_id"       => $userId,
+        "product_id"    => $productId,
+    ])->first();
+
+    return (is_null($wishlist)) ? false : true;
 }
-}
- */
