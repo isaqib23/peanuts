@@ -238,9 +238,16 @@ class ApisController extends Controller
                 $qty = $cart->qty;
 
                 if($cart->product_id == $request->input('product_id')){
-                    $qty += request('qty');
+                    $qty = request('qty');
+
+                    \DB::table("user_cart")->where([
+                        "user_id"       => $request->input('user_id'),
+                        "product_id"    => $request->product_id
+                    ])->update([
+                        "qty"   => $qty
+                    ]);
                 }
-                
+
                 Cart::store($cart->product_id, $qty, json_decode($cart->options) ?? []);
             }
         }
