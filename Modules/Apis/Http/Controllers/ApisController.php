@@ -186,7 +186,7 @@ class ApisController extends Controller
             ],422);
         }
 
-        Cart::session($request->input('user_id'))->store($request->product_id, $request->qty, $request->options ?? []);
+        Cart::store($request->product_id, $request->qty, $request->options ?? []);
 
         $user = User::where("id",$request->input('user_id'))->first();
 
@@ -200,7 +200,7 @@ class ApisController extends Controller
         ]);
         $user->wishlist()->detach($request->product_id);
 
-        return Cart::session($request->input('user_id'))->instance();
+        return Cart::instance();
     }
 
     /**
@@ -218,8 +218,17 @@ class ApisController extends Controller
             ],422);
         }
 
-        $cartItemId = $request->input('cart_id');
-        Cart::session($request->input('user_id'))->updateQuantity($cartItemId, request('qty'));
+        Cart::clear();
+        $userCart = \DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
+        if(!is_null($userCart)) {
+            foreach ($userCart as $cart) {
+                $qty = $cart->qty;
+                if($cart->product_id == $request->input('product_id')){
+                    $qty = request('qty');
+                }
+                Cart::store($cart->product_id, $qty, json_decode($cart->options) ?? []);
+            }
+        }
 
         try {
             resolve(Pipeline::class)
@@ -227,10 +236,10 @@ class ApisController extends Controller
                 ->through($this->checkers)
                 ->thenReturn();
         } catch (MinimumSpendException | MaximumSpendException $e) {
-            Cart::session($request->input('user_id'))->removeCoupon();
+            Cart::removeCoupon();
         }
 
-        return Cart::session($request->input('user_id'))->instance();
+        return Cart::instance();
     }
 
     /**
@@ -241,10 +250,18 @@ class ApisController extends Controller
      */
     public function destroyCart(Request $request)
     {
-        $cartItemId = $request->input('cart_id');
-        Cart::session($request->input('user_id'))->remove($cartItemId);
+        Cart::clear();
+        $userCart = \DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
+        if(!is_null($userCart)) {
+            foreach ($userCart as $cart) {
+                $qty = $cart->qty;
+                if($cart->product_id != $request->input('product_id')){
+                    Cart::store($cart->product_id, $qty, json_decode($cart->options) ?? []);
+                }
+            }
+        }
 
-        return Cart::session($request->input('user_id'))->instance();
+        return Cart::instance();
     }
 
     /**
@@ -281,7 +298,7 @@ class ApisController extends Controller
      */
     public function checkout(CheckoutRequest $request, CustomerService $customerService, OrderService $orderService)
     {
-        if(Cart::session($request->input('user_id'))->items()->count() == 0) {
+        if(Cart::items()->count() == 0) {
             return response()->json([
                 'message' => "Cart is empty",
             ],422);

@@ -86,8 +86,8 @@ class OrderService
 
     private function addShippingMethodToCart($request)
     {
-        if (! Cart::session($request->input('user_id'))->allItemsAreVirtual() && ! Cart::session($request->input('user_id'))->hasShippingMethod() && !is_null($request->shipping_method)) {
-            Cart::session($request->input('user_id'))->addShippingMethod(ShippingMethod::get($request->shipping_method));
+        if (! Cart::allItemsAreVirtual() && ! Cart::hasShippingMethod() && !is_null($request->shipping_method)) {
+            Cart::addShippingMethod(ShippingMethod::get($request->shipping_method));
         }
     }
 
@@ -115,12 +115,12 @@ class OrderService
             'shipping_state' => $request->shipping['state'],
             'shipping_zip' => $request->shipping['zip'],
             'shipping_country' => $request->shipping['country'],
-            'sub_total' => Cart::session($request->input('user_id'))->subTotal()->amount(),
-            'shipping_method' => Cart::session($request->input('user_id'))->shippingMethod()->name(),
-            'shipping_cost' => Cart::session($request->input('user_id'))->shippingCost()->amount(),
-            'coupon_id' => Cart::session($request->input('user_id'))->coupon()->id(),
-            'discount' => Cart::session($request->input('user_id'))->discount()->amount(),
-            'total' => Cart::session($request->input('user_id'))->total()->amount(),
+            'sub_total' => Cart::subTotal()->amount(),
+            'shipping_method' => Cart::shippingMethod()->name(),
+            'shipping_cost' => Cart::shippingCost()->amount(),
+            'coupon_id' => Cart::coupon()->id(),
+            'discount' => Cart::discount()->amount(),
+            'total' => Cart::total()->amount(),
             'payment_method' => $request->payment_method,
             'currency' => currency(),
             'currency_rate' => CurrencyRate::for(currency()),
@@ -132,21 +132,21 @@ class OrderService
 
     private function storeOrderProducts(Order $order, $request)
     {
-        Cart::session($request->input('user_id'))->items()->each(function (CartItem $cartItem) use ($order) {
+        Cart::items()->each(function (CartItem $cartItem) use ($order) {
             $order->storeProducts($cartItem);
         });
     }
 
     private function storeOrderDownloads(Order $order, $request)
     {
-        Cart::session($request->input('user_id'))->items()->each(function (CartItem $cartItem) use ($order) {
+        Cart::items()->each(function (CartItem $cartItem) use ($order) {
             $order->storeDownloads($cartItem);
         });
     }
 
     private function storeFlashSaleProductOrders(Order $order, $request)
     {
-        Cart::session($request->input('user_id'))->items()->each(function (CartItem $cartItem) use ($order) {
+        Cart::items()->each(function (CartItem $cartItem) use ($order) {
             if (! FlashSale::contains($cartItem->product)) {
                 return;
             }
@@ -164,25 +164,25 @@ class OrderService
 
     private function incrementCouponUsage(Order $order, $request)
     {
-        Cart::session($request->input('user_id'))->coupon()->usedOnce();
+        Cart::coupon()->usedOnce();
     }
 
     private function attachTaxes(Order $order, $request)
     {
-        Cart::session($request->input('user_id'))->taxes()->each(function (CartTax $cartTax) use ($order) {
+        Cart::taxes()->each(function (CartTax $cartTax) use ($order) {
             $order->attachTax($cartTax);
         });
     }
 
     public function reduceStock($request)
     {
-        Cart::session($request->input('user_id'))->reduceStock();
+        Cart::reduceStock();
     }
 
     public function delete(Order $order, $request)
     {
         $order->delete();
 
-        Cart::session($request->input('user_id'))->restoreStock();
+        Cart::restoreStock();
     }
 }
