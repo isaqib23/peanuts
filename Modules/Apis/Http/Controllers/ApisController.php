@@ -201,7 +201,7 @@ class ApisController extends Controller
                 "user_id"       => $request->input('user_id'),
                 "product_id"    => $request->product_id
             ])->update([
-                "qty"   => $request->qty + $userCart->qty
+                "qty"   => (int) $request->qty + (int) $userCart->qty
             ]);
         }else {
             \DB::table("user_cart")->insert([
