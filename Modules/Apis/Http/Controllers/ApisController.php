@@ -192,12 +192,25 @@ class ApisController extends Controller
 
         $options = $request->options ?? [];
 
-        \DB::table("user_cart")->insert([
+        $userCart = \DB::table("user_cart")->where([
             "user_id"       => $request->input('user_id'),
-            "qty"           => $request->qty,
-            "product_id"    => $request->product_id,
-            "options"       => json_encode($options),
-        ]);
+            "product_id"    => $request->product_id
+        ])->first();
+        if(!is_null($userCart)){
+            \DB::table("user_cart")->where([
+                "user_id"       => $request->input('user_id'),
+                "product_id"    => $request->product_id
+            ])->update([
+                "qty"   => $request->qty + $userCart->qty
+            ]);
+        }else {
+            \DB::table("user_cart")->insert([
+                "user_id" => $request->input('user_id'),
+                "qty" => $request->qty,
+                "product_id" => $request->product_id,
+                "options" => json_encode($options),
+            ]);
+        }
         $user->wishlist()->detach($request->product_id);
 
         return Cart::instance();
