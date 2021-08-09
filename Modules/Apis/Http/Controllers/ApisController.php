@@ -298,6 +298,16 @@ class ApisController extends Controller
      */
     public function checkout(CheckoutRequest $request, CustomerService $customerService, OrderService $orderService)
     {
+        Cart::clear();
+        $userCart = \DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
+        if(!is_null($userCart)) {
+            foreach ($userCart as $cart) {
+                $qty = $cart->qty;
+                Cart::store($cart->product_id, $qty, json_decode($cart->options) ?? []);
+            }
+        }
+
+
         if(Cart::items()->count() == 0) {
             return response()->json([
                 'message' => "Cart is empty",
