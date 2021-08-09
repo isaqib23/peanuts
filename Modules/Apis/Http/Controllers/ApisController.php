@@ -183,9 +183,10 @@ class ApisController extends Controller
                 'message' => "You can buy ".(int)$getLottery->min_ticket." items at once for this product",
             ],422);
         }
-        Cart::store($request->product_id, $request->qty, $request->options ?? []);
 
-        return Cart::instance();
+        Cart::session($request->input('user_id'))->store($request->product_id, $request->qty, $request->options ?? []);
+
+        return Cart::session($request->input('user_id'))->instance();
     }
 
     /**
@@ -204,7 +205,7 @@ class ApisController extends Controller
         }
 
         $cartItemId = $request->input('cart_id');
-        Cart::updateQuantity($cartItemId, request('qty'));
+        Cart::session($request->input('user_id'))->updateQuantity($cartItemId, request('qty'));
 
         try {
             resolve(Pipeline::class)
@@ -212,10 +213,10 @@ class ApisController extends Controller
                 ->through($this->checkers)
                 ->thenReturn();
         } catch (MinimumSpendException | MaximumSpendException $e) {
-            Cart::removeCoupon();
+            Cart::session($request->input('user_id'))->removeCoupon();
         }
 
-        return Cart::instance();
+        return Cart::session($request->input('user_id'))->instance();
     }
 
     /**
@@ -227,9 +228,9 @@ class ApisController extends Controller
     public function destroyCart(Request $request)
     {
         $cartItemId = $request->input('cart_id');
-        Cart::remove($cartItemId);
+        Cart::session($request->input('user_id'))->remove($cartItemId);
 
-        return Cart::instance();
+        return Cart::session($request->input('user_id'))->instance();
     }
 
     /**
@@ -238,8 +239,8 @@ class ApisController extends Controller
      */
     public function cart(Request $request)
     {
-        if(Cart::items()->count() > 0){
-            $cartArray = Cart::toArray();
+        if(Cart::session($request->input('user_id'))->items()->count() > 0){
+            $cartArray = Cart::session($request->input('user_id'))->toArray();
             foreach ($cartArray as $key => $value){
                 if($key == "items") {
                     $cartArray["items"] = array_values($value->toArray());
