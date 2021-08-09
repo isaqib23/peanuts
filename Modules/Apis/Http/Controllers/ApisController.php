@@ -140,7 +140,7 @@ class ApisController extends Controller
                     $products[$key]->lottery = ProductLottery::where('link_product',$value->id)->first();
                 }
 
-                $products[$key]->sold_items = getSoldLottery($value->id);
+                $products[$key]->sold_items = (string) getSoldLottery($value->id);
                 $products[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $value->id);
             }
         }
@@ -164,7 +164,7 @@ class ApisController extends Controller
             $product->lottery = $lottery;
         }
 
-        $product->sold_items = getSoldLottery($product->id);
+        $product->sold_items = (string) getSoldLottery($product->id);
         $product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
         return response()->json([
             'data' => $product,
