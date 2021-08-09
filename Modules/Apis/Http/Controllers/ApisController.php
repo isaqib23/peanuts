@@ -261,7 +261,7 @@ class ApisController extends Controller
      */
     public function checkout(CheckoutRequest $request, CustomerService $customerService, OrderService $orderService)
     {
-        if(Cart::items()->count() == 0) {
+        if(Cart::session($request->input('user_id'))->items()->count() == 0) {
             return response()->json([
                 'message' => "Cart is empty",
             ],422);
