@@ -660,6 +660,7 @@ class Product extends Model
                 ->withName()
                 ->with(['brand','categories'])
                 ->where('product_type', $type)
+                ->wherenull('deleted_at')
                 ->join('product_lottery', 'products.id', '=', 'product_lottery.link_product')
                 ->get();
         }
@@ -667,6 +668,7 @@ class Product extends Model
             ->withName()
             ->with(['brand','categories'])
             ->where('product_type', $type)
+            ->wherenull('deleted_at')
             ->get();
     }
 
