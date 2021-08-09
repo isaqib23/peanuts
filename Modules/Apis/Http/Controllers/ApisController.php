@@ -141,7 +141,7 @@ class ApisController extends Controller
                 }
 
                 $products[$key]->sold_items = getSoldLottery($value->id);
-                $products[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
+                $products[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $value->id);
             }
         }
         return response()->json([
