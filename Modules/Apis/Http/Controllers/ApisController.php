@@ -430,12 +430,30 @@ class ApisController extends Controller
     public function wishlist(Request $request)
     {
         $user = User::where("id",$request->input('user_id'))->first();
+        $status = ($request->input('status') == 'simple') ? 0 :1;
         $data = $user
             ->wishlist()
             ->with('files')
             ->latest()
             ->get();
 
-        return response()->json($data);
+        $response = [];
+        foreach ($data as $key => $value){
+            if($value->product_type == 1){
+                $data[$key]->lottery = ProductLottery::where('product_id',$value->id)->first();
+            }else{
+                $data[$key]->lottery = ProductLottery::where('link_product',$value->id)->first();
+            }
+
+            $data[$key]->product_type = (string) $value->product_type;
+            $data[$key]->sold_items = (string) getSoldLottery($value->id);
+            $data[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $value->id);
+
+
+            if($value->product_type == $status){
+                array_push($response,$value);
+            }
+        }
+        return response()->json($response);
     }
 }
