@@ -680,4 +680,14 @@ class Product extends Model
             ->where('id', $id)
             ->first();
     }
+
+    public function getOrderLotteryProducts($ids){
+        return static::select('products.*')
+            ->withName()
+            ->with(['brand','categories'])
+            ->where('product_type', 1)
+            ->whereIn('products.id', $ids)
+            ->join('product_lottery', 'products.id', '=', 'product_lottery.product_id')
+            ->get();
+    }
 }

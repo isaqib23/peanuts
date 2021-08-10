@@ -15,3 +15,4 @@ Route::post('checkout_data', 'ApisController@checkoutData')->name('checkoutData'
 Route::post('add_to_wishlist', 'ApisController@addToWishList')->name('addToWishList');
 Route::post('wishlist', 'ApisController@wishlist')->name('wishlist');
 Route::post('destroy_wishlist_item', 'ApisController@destroyWishlistItem')->name('destroyWishlistItem');
+Route::post('orders', 'ApisController@orders')->name('orders');

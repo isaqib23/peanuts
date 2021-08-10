@@ -456,4 +456,28 @@ class ApisController extends Controller
         }
         return response()->json($response);
     }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function orders(Request $request){
+        $user = User::where("id",$request->input('user_id'))->first();
+        $orders = $user
+            ->orders()
+            ->get();
+        $response = [];
+
+        foreach ($orders as $key => $order){
+            if(count($order->products->pluck('product_id')->toArray()) > 0) {
+                $products = (new \Modules\Product\Entities\Product)->getOrderLotteryProducts($order->products->pluck('product_id')->toArray());
+                if($products->count() > 0) {
+                    $products = $products->toArray();
+                    $products = array_reduce($products, 'array_merge', array());
+                    array_push($response, $products);
+                }
+            }
+        }
+        return response()->json($response);
+    }
 }
