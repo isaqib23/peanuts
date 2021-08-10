@@ -492,7 +492,9 @@ class ApisController extends Controller
                     }
                     $products = array_values($products);
                     $products = array_reduce($products, 'array_merge', array());
-                    array_push($response, $products);
+                    if(count($products) > 0) {
+                        array_push($response, $products);
+                    }
                 }
             }
         }
