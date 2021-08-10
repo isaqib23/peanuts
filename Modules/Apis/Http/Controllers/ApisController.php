@@ -2,6 +2,7 @@
 
 namespace Modules\Apis\Http\Controllers;
 
+use Carbon\Carbon;
 use Cartalyst\Sentinel\Checkpoints\NotActivatedException;
 use Cartalyst\Sentinel\Checkpoints\ThrottlingException;
 use Darryldecode\Cart\CartCollection;
@@ -473,6 +474,23 @@ class ApisController extends Controller
                 $products = (new \Modules\Product\Entities\Product)->getOrderLotteryProducts($order->products->pluck('product_id')->toArray());
                 if($products->count() > 0) {
                     $products = $products->toArray();
+                    foreach ($products as $proKey => $value){
+                        if($request->status == 'active') {
+                            $lottery = ProductLottery::where('product_id', $value["id"])
+                                ->where('to_date', '>=', Carbon::now()->format('Y-m-d'))->first();
+                        }else{
+                            $lottery = ProductLottery::where('product_id', $value["id"])
+                                ->where('to_date', '<', Carbon::now()->format('Y-m-d'))->first();
+                        }
+                        if(is_null($lottery)){
+                            unset($products[$proKey]);
+                        }else {
+                            $products[$proKey]['lottery'] = $lottery;
+                            $products[$proKey]['sold_items'] = (string)getSoldLottery($value["id"]);
+                            $products[$proKey]['is_added_to_wishlist'] = isAddedToWishlist($request->input('user_id'), $value["id"]);
+                        }
+                    }
+                    $products = array_values($products);
                     $products = array_reduce($products, 'array_merge', array());
                     array_push($response, $products);
                 }
