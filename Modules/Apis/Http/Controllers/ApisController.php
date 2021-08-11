@@ -215,7 +215,14 @@ class ApisController extends Controller
         }
         $user->wishlist()->detach($request->product_id);
 
-        return Cart::instance();
+        $cartArray = Cart::toArray();
+        foreach ($cartArray as $key => $value){
+            if($key == "items") {
+                $cartArray["items"] = array_values($value->toArray());
+            }
+        }
+
+        return $cartArray;
     }
 
     /**
