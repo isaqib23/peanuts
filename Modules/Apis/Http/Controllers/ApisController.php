@@ -284,6 +284,11 @@ class ApisController extends Controller
             }
         }
 
+        \DB::table("user_cart")->where([
+            "user_id"       => $request->input('user_id'),
+            "product_id"    => $request->input('product_id')
+        ])->delete();
+        
         return Cart::instance();
     }
 
