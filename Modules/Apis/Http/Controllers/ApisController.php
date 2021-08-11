@@ -167,7 +167,7 @@ class ApisController extends Controller
 
         $product->sold_items = (string) getSoldLottery($product->id);
         $product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
-        
+
         return response()->json([
             'data' => $product,
         ]);
@@ -233,6 +233,7 @@ class ApisController extends Controller
             ],422);
         }
 
+        $cartArray = [];
         Cart::clear();
         $userCart = \DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
         if(!is_null($userCart)) {
@@ -252,6 +253,13 @@ class ApisController extends Controller
 
                 Cart::store($cart->product_id, $qty, json_decode($cart->options) ?? []);
             }
+
+            $cartArray = Cart::toArray();
+            foreach ($cartArray as $key => $value){
+                if($key == "items") {
+                    $cartArray["items"] = array_values($value->toArray());
+                }
+            }
         }
 
         try {
@@ -263,7 +271,7 @@ class ApisController extends Controller
             Cart::removeCoupon();
         }
 
-        return Cart::instance();
+        return $cartArray;
     }
 
     /**
