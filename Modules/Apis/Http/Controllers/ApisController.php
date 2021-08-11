@@ -167,6 +167,7 @@ class ApisController extends Controller
 
         $product->sold_items = (string) getSoldLottery($product->id);
         $product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
+        
         return response()->json([
             'data' => $product,
         ]);
@@ -288,7 +289,7 @@ class ApisController extends Controller
             "user_id"       => $request->input('user_id'),
             "product_id"    => $request->input('product_id')
         ])->delete();
-        
+
         return Cart::instance();
     }
 

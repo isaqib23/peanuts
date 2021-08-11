@@ -1,7 +1,9 @@
 <?php
 
 function updateLotteryProduct($product,$data,$method){
+    $currentPrice = $data["price"];
     if($data["product_type"] == 1) {
+        $currentPrice = $data["current_price"];
         $data["product_id"] = $product->id;
 
         $lottery = (new \Modules\Product\Entities\ProductLottery())->where("product_id",$product->id)->first();
@@ -27,6 +29,10 @@ function updateLotteryProduct($product,$data,$method){
     }else{
         (new \Modules\Product\Entities\ProductLottery())->where("product_id",$product->id)->delete();
     }
+
+    (new \Modules\Product\Entities\Product)->where("id",$product->id)->update([
+        "current_price"     => $currentPrice
+    ]);
 }
 
 function getLotteryProduct($id, $data) {
@@ -66,6 +72,10 @@ function updateProductLottery($orderId){
 
                 (new \Modules\Product\Entities\ProductLottery)->where("id", $getLottery->id)->update([
                     "current_price" => $currentPrice,
+                ]);
+
+                (new \Modules\Product\Entities\Product)->where("id",$getLottery->product_id)->update([
+                    "current_price"     => $currentPrice
                 ]);
             }
         }

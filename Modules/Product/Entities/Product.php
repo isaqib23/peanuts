@@ -62,7 +62,8 @@ class Product extends Model
         'new_from',
         'new_to',
         'product_type',
-        'is_unlocked'
+        'is_unlocked',
+        'current_price'
     ];
 
     /**
