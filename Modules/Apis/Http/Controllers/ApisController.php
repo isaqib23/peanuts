@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Routing\Controller;
+use Modules\Account\Http\Requests\SaveAddressRequest;
+use Modules\Address\Entities\Address;
 use Modules\Address\Entities\DefaultAddress;
 use Modules\Apis\Http\Requests\CheckoutRequest;
 use Modules\Apis\Http\Requests\ProductRequest;
@@ -31,6 +33,7 @@ use Modules\Page\Entities\Page;
 use Modules\Payment\Facades\Gateway;
 use Modules\Product\Entities\Product;
 use Modules\Product\Entities\ProductLottery;
+use Modules\Slider\Entities\Slider;
 use Modules\Support\Country;
 use Modules\User\Contracts\Authentication;
 use Modules\User\Entities\Role;
@@ -520,5 +523,58 @@ class ApisController extends Controller
             }
         }
         return response()->json($response);
+    }
+
+    /**
+     * @param SaveAddressRequest $request
+     * @return JsonResponse
+     */
+    public function storeAddress(SaveAddressRequest $request)
+    {
+        $user = User::where("id",$request->input('user_id'))->first();
+        $address = $user->addresses()->create($request->all());
+
+        return response()->json([
+            "data" => $address
+        ]);
+    }
+
+    /**
+     * @param SaveAddressRequest $request
+     * @return JsonResponse
+     */
+    public function updateAddress(SaveAddressRequest $request)
+    {
+        $address = Address::find($request->input('id'));
+        $address->update($request->all());
+
+        return response()->json([
+            "data" => $address
+        ]);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function destroyAddress(Request $request)
+    {
+        $user = User::where("id",$request->input('user_id'))->first();
+        $user->find($request->input('id'))->delete();
+
+        return response()->json([
+            'message' => trans('account::messages.address_deleted'),
+        ]);
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function slides(){
+        $slides = (new Slider)->first()->slides->pluck('file');
+
+        return response()->json([
+            "data" => $slides
+        ]);
     }
 }

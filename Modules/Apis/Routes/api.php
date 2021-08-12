@@ -16,3 +16,7 @@ Route::post('add_to_wishlist', 'ApisController@addToWishList')->name('addToWishL
 Route::post('wishlist', 'ApisController@wishlist')->name('wishlist');
 Route::post('destroy_wishlist_item', 'ApisController@destroyWishlistItem')->name('destroyWishlistItem');
 Route::post('orders', 'ApisController@orders')->name('orders');
+Route::post('add_address', 'ApisController@storeAddress')->name('account.addresses.store');
+Route::post('update_address', 'ApisController@updateAddress')->name('account.addresses.update');
+Route::post('delete_address', 'ApisController@destroyAddress')->name('account.addresses.destroy');
+Route::post('slides', 'ApisController@slides')->name('slides');
