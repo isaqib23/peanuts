@@ -560,7 +560,7 @@ class ApisController extends Controller
     public function destroyAddress(Request $request)
     {
         $user = User::where("id",$request->input('user_id'))->first();
-        $user->find($request->input('id'))->delete();
+        $user->addresses()->find($request->input('id'))->delete();
 
         return response()->json([
             'message' => trans('account::messages.address_deleted'),
