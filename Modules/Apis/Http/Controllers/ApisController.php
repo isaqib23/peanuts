@@ -12,9 +12,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Mail;
 use Modules\Account\Http\Requests\SaveAddressRequest;
 use Modules\Address\Entities\Address;
 use Modules\Address\Entities\DefaultAddress;
+use Modules\Apis\Http\Requests\ChangePasswordRequest;
 use Modules\Apis\Http\Requests\CheckoutRequest;
 use Modules\Apis\Http\Requests\ProductRequest;
 use Modules\Apis\Http\Requests\ProductsRequest;
@@ -40,7 +42,9 @@ use Modules\User\Entities\Role;
 use Modules\User\Entities\User;
 use Modules\User\Events\CustomerRegistered;
 use Modules\User\Http\Requests\LoginRequest;
+use Modules\User\Http\Requests\PasswordResetRequest;
 use Modules\User\Http\Requests\RegisterRequest;
+use Modules\User\Mail\ResetPasswordEmail;
 use Modules\User\Services\CustomerService;
 use Modules\Votes\Entities\UserVote;
 use Modules\Votes\Entities\Votes;
@@ -631,6 +635,47 @@ class ApisController extends Controller
 
         return response()->json([
             "message" => "Vote cast successfully!"
+        ]);
+    }
+
+    /**
+     * @param ChangePasswordRequest $request
+     * @return JsonResponse
+     */
+    public function changePassword(ChangePasswordRequest $request)
+    {
+        $user = User::where("id",$request->input('user_id'))->first();
+
+        $request->bcryptPassword($request);
+
+        $user->update($request->except('user_id'));
+
+        return response()->json([
+            "message" => trans('account::messages.profile_updated')
+        ]);
+    }
+
+    /**
+     * @param PasswordResetRequest $request
+     * @return JsonResponse
+     */
+    public function postReset(PasswordResetRequest $request)
+    {
+        $user = User::where('email', $request->email)->first();
+
+        if (is_null($user)) {
+            return response()->json([
+                "message" => trans('user::messages.users.no_user_found')
+            ]);
+        }
+
+        $code = $this->auth->createReminderCode($user);
+
+        Mail::to($user)
+            ->send(new ResetPasswordEmail($user, $this->resetCompleteRoute($user, $code)));
+
+        return response()->json([
+            "message" => trans('user::messages.users.check_email_to_reset_password')
         ]);
     }
 }

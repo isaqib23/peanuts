@@ -22,3 +22,5 @@ Route::post('delete_address', 'ApisController@destroyAddress')->name('account.ad
 Route::post('slides', 'ApisController@slides')->name('slides');
 Route::post('votes', 'ApisController@votes')->name('votes');
 Route::post('vote_cast', 'ApisController@voteCast')->name('voteCast');
+Route::post('change_password', 'ApisController@changePassword')->name('changePassword');
+Route::post('forgot_password', 'ApisController@postReset')->name('postReset');
