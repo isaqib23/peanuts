@@ -588,11 +588,11 @@ class ApisController extends Controller
         foreach ($votes as $key => $value){
             $product_1 = Product::findById($value->product_1);
             $product_1->vote_count = is_null($value->count_1) ? 0 : (int) $value->count_1;
-            $votes[$key]->product_1 = $product_1;
 
             $product_2 = Product::findById($value->product_2);
             $product_2->vote_count = is_null($value->count_2) ? 0 : (int) $value->count_2;
-            $votes[$key]->product_2 = $product_2;
+            $votes[$key]->products = [$product_1,$product_2];
+
         }
 
         return response()->json([
@@ -610,7 +610,6 @@ class ApisController extends Controller
         $user_id        = $request->input('user_id');
         $product_key    = $request->input('product_key');
 
-        
         $getUserVote = UserVote::where([
             "user_id"       => $user_id,
             "vote_id"       => $vote_id,
