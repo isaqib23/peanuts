@@ -20,3 +20,5 @@ Route::post('add_address', 'ApisController@storeAddress')->name('account.address
 Route::post('update_address', 'ApisController@updateAddress')->name('account.addresses.update');
 Route::post('delete_address', 'ApisController@destroyAddress')->name('account.addresses.destroy');
 Route::post('slides', 'ApisController@slides')->name('slides');
+Route::post('votes', 'ApisController@votes')->name('votes');
+Route::post('vote_cast', 'ApisController@voteCast')->name('voteCast');

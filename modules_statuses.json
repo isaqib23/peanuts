@@ -37,5 +37,6 @@
     "Address": true,
     "Sms": true,
     "Apis": true,
-    "Suppliers": true
+    "Suppliers": true,
+    "Votes": true
 }

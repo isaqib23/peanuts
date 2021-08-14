@@ -42,6 +42,8 @@ use Modules\User\Events\CustomerRegistered;
 use Modules\User\Http\Requests\LoginRequest;
 use Modules\User\Http\Requests\RegisterRequest;
 use Modules\User\Services\CustomerService;
+use Modules\Votes\Entities\UserVote;
+use Modules\Votes\Entities\Votes;
 
 class ApisController extends Controller
 {
@@ -575,6 +577,60 @@ class ApisController extends Controller
 
         return response()->json([
             "data" => $slides
+        ]);
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function votes(){
+        $votes = Votes::all();
+        foreach ($votes as $key => $value){
+            $product_1 = Product::findById($value->product_1);
+            $product_1->vote_count = is_null($value->count_1) ? 0 : (int) $value->count_1;
+            $votes[$key]->product_1 = $product_1;
+
+            $product_2 = Product::findById($value->product_2);
+            $product_2->vote_count = is_null($value->count_2) ? 0 : (int) $value->count_2;
+            $votes[$key]->product_2 = $product_2;
+        }
+
+        return response()->json([
+            "data" => $votes
+        ]);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function voteCast(Request $request){
+        $vote_id        = $request->input('vote_id');
+        $product_id     = $request->input('product_id');
+        $user_id        = $request->input('user_id');
+        $product_key    = $request->input('product_key');
+
+        $getUserVote = UserVote::where([
+            "user_id"       => $user_id,
+            "vote_id"       => $vote_id,
+            "product_id"    => $product_id
+        ])->first();
+
+        if(!$getUserVote){
+            UserVote::insert([
+                "user_id"       => $user_id,
+                "vote_id"       => $vote_id,
+                "product_id"    => $product_id
+            ]);
+
+            Votes::where([
+                "id"                        => $vote_id,
+                "product_".$product_key     => $product_id
+            ])->increment('count_'.$product_key);
+        }
+
+        return response()->json([
+            "message" => "Vote cast successfully!"
         ]);
     }
 }

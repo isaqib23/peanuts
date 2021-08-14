@@ -561,6 +561,16 @@ class Product extends Model
         ->firstOrFail();
     }
 
+    public static function findById($id)
+    {
+        return self::with([
+            'categories', 'tags', 'attributes.attribute.attributeSet',
+            'options', 'files', 'relatedProducts', 'upSellProducts',
+        ])
+            ->where('id', $id)
+            ->firstOrFail();
+    }
+
     public function clean()
     {
         return array_except($this->toArray(), [
