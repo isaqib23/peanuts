@@ -610,6 +610,7 @@ class ApisController extends Controller
         $user_id        = $request->input('user_id');
         $product_key    = $request->input('product_key');
 
+        
         $getUserVote = UserVote::where([
             "user_id"       => $user_id,
             "vote_id"       => $vote_id,
