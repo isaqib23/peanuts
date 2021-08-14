@@ -17,8 +17,8 @@ class CreateVoteTable extends Migration
             $table->id();
             $table->integer('product_1')->unsigned();
             $table->integer('product_2')->unsigned();
-            $table->integer('count_1')->nullable();
-            $table->integer('count_2')->nullable();
+            $table->integer('count_1')->nullable()->default(0);
+            $table->integer('count_2')->nullable()->default(0);
 
             $table->timestamps();
         });
