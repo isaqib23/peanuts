@@ -283,4 +283,12 @@ class Order extends Model
 
         return new OrderTable($query);
     }
+
+    public function storeFoloosiTransaction($transaction_id)
+    {
+        $this->transaction()->create([
+            'transaction_id' => $transaction_id,
+            'payment_method' => 'foloosi',
+        ]);
+    }
 }

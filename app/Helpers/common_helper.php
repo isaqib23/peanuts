@@ -94,3 +94,43 @@ function isAddedToWishlist($userId, $productId){
 
     return (is_null($wishlist)) ? false : true;
 }
+
+function initializeFoloosi(){
+    $curl = curl_init();
+
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => "https://foloosi.com/api/v1/api/initialize-setup",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POSTFIELDS => [
+            "transaction_amount"    => 1,
+            "currency"              => "AED",
+            "customer_address"      => "Address",
+            "customer_city"         => "Dubai",
+            "billing_country"       => "AE",
+            "billing_state"         => "Dubai",
+            "billing_postal_code"   => "000000",
+            "customer_name"         => "Test",
+            "customer_email"        => "isaqib23@gmail.com",
+            "customer_mobile"       => "0569038033"
+        ],
+        CURLOPT_HTTPHEADER => array(
+            "content-type: multipart/form-data",
+            "merchant_key: ".setting('foloosi_merchant_key')
+        ),
+    ));
+    $response = curl_exec($curl);
+    $err = curl_error($curl);
+    curl_close($curl);
+    if ($err) {
+        $responseData =  $err;
+    } else {
+        $responseData = json_decode($response,true);
+    }
+
+    return isset($responseData['data']) ? $responseData['data'] : $responseData;
+}

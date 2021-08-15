@@ -24,3 +24,5 @@ Route::post('votes', 'ApisController@votes')->name('votes');
 Route::post('vote_cast', 'ApisController@voteCast')->name('voteCast');
 Route::post('change_password', 'ApisController@changePassword')->name('changePassword');
 Route::post('forgot_password', 'ApisController@postReset')->name('postReset');
+Route::post('get_payment_token', 'ApisController@getPaymentToken')->name('getPaymentToken');
+Route::post('complete_order', 'ApisController@completeOrder')->name('completeOrder');

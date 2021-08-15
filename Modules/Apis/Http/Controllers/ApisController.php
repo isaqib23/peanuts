@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Cartalyst\Sentinel\Checkpoints\NotActivatedException;
 use Cartalyst\Sentinel\Checkpoints\ThrottlingException;
 use Darryldecode\Cart\CartCollection;
+use GuzzleHttp\Client;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -191,9 +192,17 @@ class ApisController extends Controller
     public function addToCart(\Modules\Apis\Http\Requests\StoreCartItemRequest $request)
     {
         $getLottery = \Modules\Product\Entities\ProductLottery::where("product_id",$request->product_id)->first();
+        $soldTickets = getSoldLottery($request->product_id);
+        $remainingTickets = (int) $getLottery->min_ticket - (int) $soldTickets;
         if($getLottery && ($request->qty > (int)$getLottery->min_ticket)){
             return response()->json([
                 'message' => "You can buy ".(int)$getLottery->min_ticket." items at once for this product",
+            ],422);
+        }
+
+        if($getLottery && ($request->qty > $remainingTickets)){
+            return response()->json([
+                'message' => "You can buy ".(int)$remainingTickets." items for this product",
             ],422);
         }
 
@@ -368,7 +377,7 @@ class ApisController extends Controller
         }
         $order = $orderService->create($request);
 
-        $gateway = Gateway::get($request->payment_method);
+        /*$gateway = Gateway::get($request->payment_method);
 
         try {
             $response = $gateway->purchase($order, $request);
@@ -382,19 +391,15 @@ class ApisController extends Controller
 
         $orderId = json_encode($response);
         $orderId = json_decode($orderId, true);
-        $orderId = $orderId["orderId"];
-
-        $order = Order::findOrFail($orderId);
-
-        $order->storeTransaction($response);
+        $orderId = $orderId["orderId"];*/
+        $orderId = $order->id;
 
         event(new OrderPlaced($order));
 
-        $order->update(['status' => "completed"]);
-
         updateProductLottery($orderId);
 
-        $userCart = \DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
+        \DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
+
         return response()->json($order);
     }
 
@@ -676,6 +681,24 @@ class ApisController extends Controller
 
         return response()->json([
             "message" => trans('user::messages.users.check_email_to_reset_password')
+        ]);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function completeOrder(Request $request){
+        $orderId = $request->input('order_id');
+
+        $order = Order::findOrFail($orderId);
+
+        $order->storeFoloosiTransaction($request->input('transaction_id'));
+
+        $order->update(['status' => "completed"]);
+
+        return response()->json([
+            "message" => "Order Completed"
         ]);
     }
 }
