@@ -416,8 +416,10 @@ class ApisController extends Controller
         foreach (Country::supported() as $key => $value){
             $data = ["id" => $key, "name" => $value];
             $data["states"] = [];
-            foreach (State::get($key) as $key1 => $value1){
-                array_push($data["states"],["id" => $key1, "name" => $value1]);
+            if(State::get($key)) {
+                foreach (State::get($key) as $key1 => $value1) {
+                    array_push($data["states"], ["id" => $key1, "name" => $value1]);
+                }
             }
             array_push($countries,$data);
         }
