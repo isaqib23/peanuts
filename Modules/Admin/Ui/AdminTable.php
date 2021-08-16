@@ -60,26 +60,43 @@ class AdminTable implements Responsable
      */
     public function newTable()
     {
-        return datatables($this->source)
-            ->addColumn('checkbox', function ($entity) {
-                return view('admin::partials.table.checkbox', compact('entity'));
-            })
-            ->editColumn('status', function ($entity) {
-                return $entity->is_active
-                    ? '<span class="dot green"></span>'
-                    : '<span class="dot red"></span>';
-            })
-            ->editColumn('created', function ($entity) {
-                return view('admin::partials.table.date')->with('date', $entity->created_at);
-            })
-            ->editColumn('product_1', function ($entity) {
-                return Product::findById($entity->product_1)->name;
-            })
-            ->editColumn('product_2', function ($entity) {
-                return Product::findById($entity->product_2)->name;
-            })
-            ->rawColumns(array_merge($this->defaultRawColumns, $this->rawColumns))
-            ->removeColumn('translations');
+        if($this->source->getQuery()->from == "votes"){
+            return datatables($this->source)
+                ->addColumn('checkbox', function ($entity) {
+                    return view('admin::partials.table.checkbox', compact('entity'));
+                })
+                ->editColumn('status', function ($entity) {
+                    return $entity->is_active
+                        ? '<span class="dot green"></span>'
+                        : '<span class="dot red"></span>';
+                })
+                ->editColumn('created', function ($entity) {
+                    return view('admin::partials.table.date')->with('date', $entity->created_at);
+                })
+                ->editColumn('product_1', function ($entity) {
+                    return Product::findById($entity->product_1)->name;
+                })
+                ->editColumn('product_2', function ($entity) {
+                    return Product::findById($entity->product_2)->name;
+                })
+                ->rawColumns(array_merge($this->defaultRawColumns, $this->rawColumns))
+                ->removeColumn('translations');
+        }else {
+            return datatables($this->source)
+                ->addColumn('checkbox', function ($entity) {
+                    return view('admin::partials.table.checkbox', compact('entity'));
+                })
+                ->editColumn('status', function ($entity) {
+                    return $entity->is_active
+                        ? '<span class="dot green"></span>'
+                        : '<span class="dot red"></span>';
+                })
+                ->editColumn('created', function ($entity) {
+                    return view('admin::partials.table.date')->with('date', $entity->created_at);
+                })
+                ->rawColumns(array_merge($this->defaultRawColumns, $this->rawColumns))
+                ->removeColumn('translations');
+        }
     }
 
     /**
