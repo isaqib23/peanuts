@@ -193,17 +193,19 @@ class ApisController extends Controller
     {
         $getLottery = \Modules\Product\Entities\ProductLottery::where("product_id",$request->product_id)->first();
         $soldTickets = getSoldLottery($request->product_id);
-        $remainingTickets = (int) $getLottery->max_ticket - (int) $soldTickets;
         if($getLottery && ($request->qty > (int)$getLottery->min_ticket)){
             return response()->json([
                 'message' => "You can buy ".(int)$getLottery->min_ticket." items at once for this product",
             ],422);
         }
 
-        if($getLottery && ($request->qty > $remainingTickets)){
-            return response()->json([
-                'message' => "You can buy ".(int)$remainingTickets." items for this product",
-            ],422);
+        if($getLottery){
+            $remainingTickets = (int)$getLottery->max_ticket - (int)$soldTickets;
+            if($request->qty > $remainingTickets) {
+                return response()->json([
+                    'message' => "You can buy ".(int)$remainingTickets." items for this product",
+                ],422);
+            }
         }
 
         Cart::store($request->product_id, $request->qty, $request->options ?? []);
