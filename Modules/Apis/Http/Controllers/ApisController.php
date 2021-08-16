@@ -199,7 +199,7 @@ class ApisController extends Controller
                 'message' => "You can buy ".(int)$getLottery->min_ticket." items at once for this product",
             ],422);
         }
- dd($remainingTickets);
+ 
         if($getLottery && ($request->qty > $remainingTickets)){
             return response()->json([
                 'message' => "You can buy ".(int)$remainingTickets." items for this product",
