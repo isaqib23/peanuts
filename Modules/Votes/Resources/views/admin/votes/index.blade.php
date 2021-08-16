@@ -32,8 +32,8 @@
                 { data: 'id', width: '5%' },
                 //{ data: 'product A', name: 'product_1', orderable: false, defaultContent: '' },
                 //{ data: 'product B', name: 'product_2', orderable: false, defaultContent: '' },
-                { data: 'created', name: 'product_1' },
-                { data: 'created', name: 'product_1' },
+                { data: 'product_1', name: 'product_1' },
+                { data: 'product_2', name: 'product_2' },
                 { data: 'created', name: 'created_at' },
             ],
         });

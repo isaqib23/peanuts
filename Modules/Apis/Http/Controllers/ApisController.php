@@ -409,8 +409,12 @@ class ApisController extends Controller
      */
     public function checkoutData(Request $request) {
         $user = User::where("id",$request->input('user_id'))->first();
+        $countries = [];
+        foreach (Country::supported() as $key => $value){
+            array_push($countries,["id" => $key, "name" => $value]);
+        }
         $data = [
-            'countries' => Country::supported(),
+            'countries' => $countries,
             'gateways' => Gateway::all(),
             'defaultAddress' => $user->addresses ?? new DefaultAddress,
         ];

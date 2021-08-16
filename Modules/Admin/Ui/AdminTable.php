@@ -3,6 +3,7 @@
 namespace Modules\Admin\Ui;
 
 use Illuminate\Contracts\Support\Responsable;
+use Modules\Product\Entities\Product;
 
 class AdminTable implements Responsable
 {
@@ -70,6 +71,12 @@ class AdminTable implements Responsable
             })
             ->editColumn('created', function ($entity) {
                 return view('admin::partials.table.date')->with('date', $entity->created_at);
+            })
+            ->editColumn('product_1', function ($entity) {
+                return Product::findById($entity->product_1)->name;
+            })
+            ->editColumn('product_2', function ($entity) {
+                return Product::findById($entity->product_2)->name;
             })
             ->rawColumns(array_merge($this->defaultRawColumns, $this->rawColumns))
             ->removeColumn('translations');

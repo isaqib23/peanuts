@@ -22,7 +22,7 @@ class SidebarExtender extends BaseSidebarExtender
                         'admin.categories.index',
                         'admin.attributes.index',
                         'admin.attribute_sets.index',
-                        'admin.options.index',
+                        'admin.options.index'
                     ])
                 );
 

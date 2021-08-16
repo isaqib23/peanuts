@@ -14,11 +14,6 @@ class VotesTable extends AdminTable
      */
     public function make()
     {
-        return $this->newTable()
-            ->addColumn('logo', function (Votes $votes) {
-                return view('admin::partials.table.image', [
-                    'file' => $votes->logo,
-                ]);
-            });
+        return $this->newTable();
     }
 }
