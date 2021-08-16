@@ -413,9 +413,15 @@ class ApisController extends Controller
         foreach (Country::supported() as $key => $value){
             array_push($countries,["id" => $key, "name" => $value]);
         }
+        $gateways = [];
+        foreach (Gateway::all() as $key => $value){
+            $value->id = $key;
+            array_push($gateways,$value);
+        }
+
         $data = [
             'countries' => $countries,
-            'gateways' => Gateway::all(),
+            'gateways' => $gateways,
             'defaultAddress' => $user->addresses ?? new DefaultAddress,
         ];
 
