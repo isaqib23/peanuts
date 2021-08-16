@@ -13,13 +13,14 @@ class Foloosi implements GatewayInterface
     public $label;
     public $description;
     public $merchantKey;
+    public $secretKey;
 
     public function __construct()
     {
         $this->label = setting('foloosi_label');
         $this->description = setting('foloosi_description');
         $this->merchantKey = setting('foloosi_merchant_key');
-        $this->initialize = initializeFoloosi();
+        $this->secretKey = setting('foloosi_secret_key');
     }
 
     public function purchase(Order $order, Request $request)
