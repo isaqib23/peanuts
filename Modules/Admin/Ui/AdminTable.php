@@ -78,9 +78,9 @@ class AdminTable implements Responsable
 
         if($this->source->getQuery()->from == "votes"){
             $dataTable->editColumn('product_1', function ($entity) {
-                return Product::findById($entity->product_1)->name;
+                return (Product::findById($entity->product_1)) ? Product::findById($entity->product_1)->name : "-";
             })->editColumn('product_2', function ($entity) {
-                    return Product::findById($entity->product_2)->name;
+                return (Product::findById($entity->product_2)) ? Product::findById($entity->product_2)->name : "-";
             });
         }
 

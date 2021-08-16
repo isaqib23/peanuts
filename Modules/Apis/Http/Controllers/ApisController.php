@@ -38,6 +38,7 @@ use Modules\Product\Entities\Product;
 use Modules\Product\Entities\ProductLottery;
 use Modules\Slider\Entities\Slider;
 use Modules\Support\Country;
+use Modules\Support\State;
 use Modules\User\Contracts\Authentication;
 use Modules\User\Entities\Role;
 use Modules\User\Entities\User;
@@ -413,7 +414,12 @@ class ApisController extends Controller
         $user = User::where("id",$request->input('user_id'))->first();
         $countries = [];
         foreach (Country::supported() as $key => $value){
-            array_push($countries,["id" => $key, "name" => $value]);
+            $data = ["id" => $key, "name" => $value];
+            $data["states"] = [];
+            foreach (State::get($key) as $key1 => $value1){
+                array_push($data["states"],["id" => $key1, "name" => $value1]);
+            }
+            array_push($countries,$data);
         }
         $gateways = [];
         foreach (Gateway::all() as $key => $value){
