@@ -401,6 +401,12 @@ class ApisController extends Controller
 
         updateProductLottery($orderId);
 
+        $order = Order::findOrFail($orderId);
+
+        $order->storeFoloosiTransaction($request->input('transaction_id'));
+
+        $order->update(['status' => "completed"]);
+
         \DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
 
         return response()->json($order);
