@@ -6,9 +6,11 @@ use Carbon\Carbon;
 use Cartalyst\Sentinel\Checkpoints\NotActivatedException;
 use Cartalyst\Sentinel\Checkpoints\ThrottlingException;
 use Darryldecode\Cart\CartCollection;
+use DB;
 use GuzzleHttp\Client;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pipeline\Pipeline;
@@ -192,7 +194,7 @@ class ApisController extends Controller
      */
     public function addToCart(\Modules\Apis\Http\Requests\StoreCartItemRequest $request)
     {
-        $getLottery = \Modules\Product\Entities\ProductLottery::where("product_id",$request->product_id)->first();
+        $getLottery = ProductLottery::where("product_id",$request->product_id)->first();
         $soldTickets = getSoldLottery($request->product_id);
         if($getLottery && ($request->qty > (int)$getLottery->min_ticket)){
             return response()->json([
@@ -215,19 +217,19 @@ class ApisController extends Controller
 
         $options = $request->options ?? [];
 
-        $userCart = \DB::table("user_cart")->where([
+        $userCart = DB::table("user_cart")->where([
             "user_id"       => $request->input('user_id'),
             "product_id"    => $request->product_id
         ])->first();
         if(!is_null($userCart)){
-            \DB::table("user_cart")->where([
+            DB::table("user_cart")->where([
                 "user_id"       => $request->input('user_id'),
                 "product_id"    => $request->product_id
             ])->update([
                 "qty"   => (int) $request->qty + (int) $userCart->qty
             ]);
         }else {
-            \DB::table("user_cart")->insert([
+            DB::table("user_cart")->insert([
                 "user_id" => $request->input('user_id'),
                 "qty" => $request->qty,
                 "product_id" => $request->product_id,
@@ -254,7 +256,7 @@ class ApisController extends Controller
      */
     public function updateCart(Request $request)
     {
-        $getLottery = \Modules\Product\Entities\ProductLottery::where("product_id",$request->product_id)->first();
+        $getLottery = ProductLottery::where("product_id",$request->product_id)->first();
         if($getLottery && ($request->qty > (int)$getLottery->min_ticket)){
             return response()->json([
                 'message' => "You can buy ".(int)$getLottery->min_ticket." items at once for this product",
@@ -263,7 +265,7 @@ class ApisController extends Controller
 
         $cartArray = [];
         Cart::clear();
-        $userCart = \DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
+        $userCart = DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
         if(!is_null($userCart)) {
             foreach ($userCart as $cart) {
                 $qty = $cart->qty;
@@ -271,7 +273,7 @@ class ApisController extends Controller
                 if($cart->product_id == $request->input('product_id')){
                     $qty = request('qty');
 
-                    \DB::table("user_cart")->where([
+                    DB::table("user_cart")->where([
                         "user_id"       => $request->input('user_id'),
                         "product_id"    => $request->product_id
                     ])->update([
@@ -311,7 +313,7 @@ class ApisController extends Controller
     public function destroyCart(Request $request)
     {
         Cart::clear();
-        $userCart = \DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
+        $userCart = DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
         if(!is_null($userCart)) {
             foreach ($userCart as $cart) {
                 $qty = $cart->qty;
@@ -321,7 +323,7 @@ class ApisController extends Controller
             }
         }
 
-        \DB::table("user_cart")->where([
+        DB::table("user_cart")->where([
             "user_id"       => $request->input('user_id'),
             "product_id"    => $request->input('product_id')
         ])->delete();
@@ -336,7 +338,7 @@ class ApisController extends Controller
     public function cart(Request $request)
     {
         Cart::clear();
-        $userCart = \DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
+        $userCart = DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
         if(!is_null($userCart)){
             foreach ($userCart as $cart) {
                 Cart::store($cart->product_id, $cart->qty, json_decode($cart->options) ?? []);
@@ -364,7 +366,7 @@ class ApisController extends Controller
     public function checkout(CheckoutRequest $request, CustomerService $customerService, OrderService $orderService)
     {
         Cart::clear();
-        $userCart = \DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
+        $userCart = DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
         if(!is_null($userCart)) {
             foreach ($userCart as $cart) {
                 $qty = $cart->qty;
@@ -407,7 +409,7 @@ class ApisController extends Controller
 
         $order->update(['status' => "completed"]);
 
-        \DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
+        DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
 
         return response()->json($order);
     }
@@ -532,7 +534,7 @@ class ApisController extends Controller
 
         foreach ($orders as $key => $order){
             if(count($order->products->pluck('product_id')->toArray()) > 0) {
-                $products = (new \Modules\Product\Entities\Product)->getOrderLotteryProducts($order->products->pluck('product_id')->toArray());
+                $products = (new Product)->getOrderLotteryProducts($order->products->pluck('product_id')->toArray());
                 if($products->count() > 0) {
                     $products = $products->toArray();
                     foreach ($products as $proKey => $value){
@@ -725,6 +727,20 @@ class ApisController extends Controller
 
         return response()->json([
             "message" => "Order Completed"
+        ]);
+    }
+
+    /**
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function updateProfile(Request $request){
+        $user = User::where("id",$request->input('user_id'))->first();
+
+        $user->update($request->all());
+
+        return response()->json([
+            "message" => trans('account::messages.profile_updated')
         ]);
     }
 }

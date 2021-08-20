@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::post('login', 'ApisController@login')->name('login');
+Route::post('login', 'ApisController@login')->name('api.login');
 Route::post('signup', 'ApisController@register')->name('register');
 Route::post('products', 'ApisController@products')->name('products');
 Route::post('product', 'ApisController@product')->name('product');
@@ -26,3 +26,4 @@ Route::post('change_password', 'ApisController@changePassword')->name('changePas
 Route::post('forgot_password', 'ApisController@postReset')->name('postReset');
 Route::post('get_payment_token', 'ApisController@getPaymentToken')->name('getPaymentToken');
 Route::post('complete_order', 'ApisController@completeOrder')->name('completeOrder');
+Route::post('update_profile', 'ApisController@updateProfile')->name('updateProfile');
