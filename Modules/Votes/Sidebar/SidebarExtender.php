@@ -16,9 +16,6 @@ class SidebarExtender extends BaseSidebarExtender
                 $item->item(trans('votes::sidebar.votes'), function (Item $item) {
                     $item->weight(30);
                     $item->route('admin.votes.index');
-                    $item->authorize(
-                        $this->auth->hasAccess('admin.votes.index')
-                    );
                 });
             });
         });

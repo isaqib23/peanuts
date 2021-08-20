@@ -16,6 +16,7 @@ use Illuminate\Http\Response;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Modules\Account\Http\Requests\SaveAddressRequest;
 use Modules\Address\Entities\Address;
 use Modules\Address\Entities\DefaultAddress;
@@ -32,6 +33,7 @@ use Modules\Coupon\Checkers\MaximumSpend;
 use Modules\Coupon\Checkers\MinimumSpend;
 use Modules\Coupon\Exceptions\MaximumSpendException;
 use Modules\Coupon\Exceptions\MinimumSpendException;
+use Modules\Media\Entities\File;
 use Modules\Order\Entities\Order;
 use Modules\Order\Http\Requests\StoreOrderRequest;
 use Modules\Page\Entities\Page;
@@ -737,10 +739,24 @@ class ApisController extends Controller
     public function updateProfile(Request $request){
         $user = User::where("id",$request->input('user_id'))->first();
 
+        $file = $request->file('image');
+        $path = Storage::putFile('media', $file);
+
+        $response = File::create([
+            'user_id' => $user->id,
+            'disk' => config('filesystems.default'),
+            'filename' => $file->getClientOriginalName(),
+            'path' => $path,
+            'extension' => $file->guessClientExtension() ?? '',
+            'mime' => $file->getClientMimeType(),
+            'size' => $file->getSize(),
+        ]);
+
+        $request->merge(["photo" => $response->path]);
         $user->update($request->all());
 
         return response()->json([
-            "message" => trans('account::messages.profile_updated')
+            "data" => $user
         ]);
     }
 }

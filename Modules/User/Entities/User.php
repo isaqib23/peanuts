@@ -31,6 +31,7 @@ class User extends EloquentUser implements AuthenticatableContract
         'last_name',
         'first_name',
         'permissions',
+        'photo'
     ];
 
     /**

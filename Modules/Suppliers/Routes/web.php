@@ -11,6 +11,36 @@
 |
 */
 
-Route::prefix('suppliers')->group(function() {
-    Route::get('/', 'SuppliersController@index');
+Route::prefix('admin/suppliers')->group(function() {
+
+    Route::get('/', [
+        'as' => 'admin.suppliers.index',
+        'uses' => 'Admin\SuppliersController@index'
+    ]);
+
+    Route::get('/create', [
+        'as' => 'admin.suppliers.create',
+        'uses' => 'Admin\SuppliersController@create',
+    ]);
+
+    Route::post('/', [
+        'as' => 'admin.suppliers.store',
+        'uses' => 'Admin\SuppliersController@store',
+    ]);
+
+    Route::get('/{id}/edit', [
+        'as' => 'admin.suppliers.edit',
+        'uses' => 'Admin\SuppliersController@edit',
+    ]);
+
+    Route::put('/{id}', [
+        'as' => 'admin.suppliers.update',
+        'uses' => 'Admin\SuppliersController@update',
+    ]);
+
+    Route::delete('/{ids?}', [
+        'as' => 'admin.suppliers.destroy',
+        'uses' => 'Admin\SuppliersController@destroy',
+    ]);
+
 });
