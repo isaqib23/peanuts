@@ -739,20 +739,23 @@ class ApisController extends Controller
     public function updateProfile(Request $request){
         $user = User::where("id",$request->input('user_id'))->first();
 
-        $file = $request->file('image');
-        $path = Storage::putFile('media', $file);
+        if($request->hasFile('image')) {
+            $file = $request->file('image');
+            $path = Storage::putFile('media', $file);
 
-        $response = File::create([
-            'user_id' => $user->id,
-            'disk' => config('filesystems.default'),
-            'filename' => $file->getClientOriginalName(),
-            'path' => $path,
-            'extension' => $file->guessClientExtension() ?? '',
-            'mime' => $file->getClientMimeType(),
-            'size' => $file->getSize(),
-        ]);
+            $response = File::create([
+                'user_id' => $user->id,
+                'disk' => config('filesystems.default'),
+                'filename' => $file->getClientOriginalName(),
+                'path' => $path,
+                'extension' => $file->guessClientExtension() ?? '',
+                'mime' => $file->getClientMimeType(),
+                'size' => $file->getSize(),
+            ]);
 
-        $request->merge(["photo" => $response->path]);
+            $request->merge(["photo" => $response->path]);
+        }
+
         $user->update($request->all());
 
         return response()->json([
