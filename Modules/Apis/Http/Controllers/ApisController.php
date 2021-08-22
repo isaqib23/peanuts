@@ -148,6 +148,7 @@ class ApisController extends Controller
     public function products(ProductsRequest $request){
         $status = ($request->input('status') == 'simple') ? 0 :1;
         $products = Product::filterByType($status);
+
         if($products->count() > 0){
             foreach ($products as $key => $value){
                 if($value->product_type == 1){
