@@ -77,6 +77,10 @@ function updateProductLottery($orderId){
                 (new \Modules\Product\Entities\Product)->where("id",$getLottery->product_id)->update([
                     "current_price"     => $currentPrice
                 ]);
+
+                (new \Modules\Product\Entities\Product)->where("id",$getLottery->link_product)->update([
+                    "current_price"     => $currentPrice
+                ]);
             }
         }
     }

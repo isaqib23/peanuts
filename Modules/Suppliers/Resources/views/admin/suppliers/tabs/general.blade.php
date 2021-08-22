@@ -3,8 +3,9 @@
         @include('media::admin.image_picker.single', [
             'title' => trans('suppliers::suppliers.form.logo'),
             'inputName' => 'files[logo]',
-            'file' => $supplier->logo,
+            'file' => $supplier,
         ])
+        <div class="media-picker-divider"></div>
         {{ Form::text('name', trans('suppliers::attributes.name'), $errors, $supplier, ['required' => true]) }}
         {{ Form::text('name', trans('suppliers::attributes.email'), $errors, $supplier, ['required' => true]) }}
         {{ Form::text('name', trans('suppliers::attributes.phone'), $errors, $supplier, ['required' => true]) }}
