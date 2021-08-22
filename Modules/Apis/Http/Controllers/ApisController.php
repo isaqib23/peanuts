@@ -122,6 +122,27 @@ class ApisController extends Controller
 
         $this->assignCustomerRole($user);
 
+        if($request->input('image')) {
+            $file = $request->input('image');
+
+            $image = str_replace('data:image/png;base64,', '', $file);
+            $image = str_replace(' ', '+', $image);
+            $imageName = str_random(10).'.'.'png';
+            \File::put(public_path(). '/storage/media/' . $imageName, base64_decode($image));
+
+            $response = File::create([
+                'user_id' => $user->id,
+                'disk' => config('filesystems.default'),
+                'filename' => $imageName,
+                'path' => 'media/'.$imageName,
+                'extension' => 'png',
+                'mime' => 'image/png',
+                'size' => 132,
+            ]);
+
+            $request->merge(["photo" => $response->path]);
+        }
+
         event(new CustomerRegistered($user));
 
         return response()->json([
@@ -740,18 +761,22 @@ class ApisController extends Controller
     public function updateProfile(Request $request){
         $user = User::where("id",$request->input('user_id'))->first();
 
-        if($request->hasFile('image')) {
-            $file = $request->file('image');
-            $path = Storage::putFile('media', $file);
+        if($request->input('image')) {
+            $file = $request->input('image');
+
+            $image = str_replace('data:image/png;base64,', '', $file);
+            $image = str_replace(' ', '+', $image);
+            $imageName = str_random(10).'.'.'png';
+            \File::put(public_path(). '/storage/media/' . $imageName, base64_decode($image));
 
             $response = File::create([
                 'user_id' => $user->id,
                 'disk' => config('filesystems.default'),
-                'filename' => $file->getClientOriginalName(),
-                'path' => $path,
-                'extension' => $file->guessClientExtension() ?? '',
-                'mime' => $file->getClientMimeType(),
-                'size' => $file->getSize(),
+                'filename' => $imageName,
+                'path' => 'media/'.$imageName,
+                'extension' => 'png',
+                'mime' => 'image/png',
+                'size' => 132,
             ]);
 
             $request->merge(["photo" => $response->path]);
