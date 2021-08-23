@@ -123,7 +123,7 @@ class ApisController extends Controller
         $this->assignCustomerRole($user);
 
         $users = User::where("id",$user->id)->first();
-        
+
         if($request->input('image')) {
             $file = $request->input('image');
 

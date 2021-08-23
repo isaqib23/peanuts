@@ -14,7 +14,7 @@ class AddCurrentPriceTable extends Migration
     public function up()
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->decimal('current_price', 18, 4)->unsigned()->after('price');
+            $table->decimal('current_price', 18, 4)->unsigned()->after('price')->nullable();
         });
     }
 
