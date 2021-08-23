@@ -5,6 +5,7 @@ namespace Modules\Product\Admin;
 use Modules\Admin\Ui\Tab;
 use Modules\Admin\Ui\Tabs;
 use Modules\Product\Entities\Product;
+use Modules\Suppliers\Entities\Supplier;
 use Modules\Tag\Entities\Tag;
 use Modules\Brand\Entities\Brand;
 use Modules\Tax\Entities\TaxClass;
@@ -42,6 +43,7 @@ class ProductTabs extends Tabs
                 'categories' => Category::treeList(),
                 'taxClasses' => $this->taxClasses(),
                 'tags' => Tag::list(),
+                'suppliers' => $this->suppliers(),
                 'types' => [
                     "Simple Product",
                     "Lottery Product"
@@ -175,5 +177,10 @@ class ProductTabs extends Tabs
 
     private function link_products(){
         return (new \Modules\Product\Entities\Product)->linkProducts()->pluck("name","id")->prepend(trans('admin::admin.form.please_select'), '');
+    }
+
+    private function suppliers()
+    {
+        return (new Supplier())->pluck("name","id")->prepend(trans('admin::admin.form.please_select'), '');
     }
 }

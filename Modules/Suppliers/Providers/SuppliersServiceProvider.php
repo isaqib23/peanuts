@@ -3,9 +3,8 @@
 namespace Modules\Suppliers\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Database\Eloquent\Factory;
 use Modules\Admin\Ui\Facades\TabManager;
-use Modules\Suppliers\Admin\ProductTabsExtender;
+use Modules\Review\Admin\ProductTabsExtender;
 use Modules\Suppliers\Admin\SuppliersTabs;
 
 class SuppliersServiceProvider extends ServiceProvider

@@ -34,4 +34,5 @@ return [
     'from_date' => 'Lottery From Date',
     'to_date' => 'Lottery To Date',
     'product_type' => 'Product Type',
+    'supplier_id' => 'Supplier',
 ];

@@ -3,6 +3,8 @@
 namespace Modules\Admin\Traits;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Modules\Media\Entities\File;
 use Modules\Product\Entities\ProductLottery;
 use Modules\Support\Search\Searchable;
 use Modules\Admin\Ui\Facades\TabManager;
@@ -56,9 +58,34 @@ trait HasCrudActions
     {
         $this->disableSearchSyncing();
 
-        $entity = $this->getModel()->create(
-            $this->getRequest('store')->all()
-        );
+        if($this->getRequest('store')->route()->getName() == "admin.suppliers.store"){
+            $data = $this->getRequest('store')->except('file');
+            if($this->getRequest('store')->hasFile("file")) {
+                $file = $this->getRequest('store')->file('file');
+                $path = Storage::putFile('media', $file);
+
+                $response = File::create([
+                    'user_id' => auth()->id(),
+                    'disk' => config('filesystems.default'),
+                    'filename' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'extension' => $file->guessClientExtension() ?? '',
+                    'mime' => $file->getClientMimeType(),
+                    'size' => $file->getSize(),
+                ]);
+
+                $data["logo"] = $response->path;
+            }
+
+            $entity = $this->getModel()->create(
+                $data
+            );
+        }else {
+
+            $entity = $this->getModel()->create(
+                $this->getRequest('store')->all()
+            );
+        }
 
         $this->searchable($entity);
 
@@ -125,9 +152,33 @@ trait HasCrudActions
 
         $this->disableSearchSyncing();
 
-        $entity->update(
-            $this->getRequest('update')->all()
-        );
+        if($this->getRequest('update')->route()->getName() == "admin.suppliers.update"){
+            $data = $this->getRequest('update')->except('file');
+            if($this->getRequest('update')->hasFile("file")) {
+                $file = $this->getRequest('update')->file('file');
+                $path = Storage::putFile('media', $file);
+
+                $response = File::create([
+                    'user_id' => auth()->id(),
+                    'disk' => config('filesystems.default'),
+                    'filename' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'extension' => $file->guessClientExtension() ?? '',
+                    'mime' => $file->getClientMimeType(),
+                    'size' => $file->getSize(),
+                ]);
+
+                $data["logo"] = $response->path;
+            }
+
+            $entity->update(
+                $data
+            );
+        }else {
+            $entity->update(
+                $this->getRequest('update')->all()
+            );
+        }
 
         $this->searchable($entity);
 

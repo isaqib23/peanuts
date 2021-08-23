@@ -38,9 +38,7 @@
                 { data: 'phone', name: 'phone'},
                 { data: 'fax', name: 'fax', orderable: false, defaultContent: '' },
                 { data: 'website', name: 'website', orderable: false, defaultContent: '' },
-                { data: 'address', name: 'address' },
-                { data: 'phone', name: 'phone' },
-                { data: 'phone', name: 'phone' }
+                { data: 'address', name: 'address' }
             ],
         });
     </script>

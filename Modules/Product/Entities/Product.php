@@ -2,6 +2,7 @@
 
 namespace Modules\Product\Entities;
 
+use Modules\Suppliers\Entities\Supplier;
 use Modules\Support\Money;
 use Modules\Tag\Entities\Tag;
 use Modules\Media\Entities\File;
@@ -63,7 +64,8 @@ class Product extends Model
         'new_to',
         'product_type',
         'is_unlocked',
-        'current_price'
+        'current_price',
+        'supplier_id'
     ];
 
     /**
@@ -670,14 +672,14 @@ class Product extends Model
         if($type == 0){
             return static::select('products.*')
                 ->withName()
-                ->with(['brand','categories'])
+                ->with(['brand','categories','supplier'])
                 ->where('product_type', $type)
                 ->join('product_lottery', 'products.id', '=', 'product_lottery.link_product')
                 ->get();
         }
         return static::select('products.*')
             ->withName()
-            ->with(['brand','categories'])
+            ->with(['brand','categories','supplier'])
             ->where('product_type', $type)
             ->join('product_lottery', 'products.id', '=', 'product_lottery.product_id')
             ->get();
@@ -687,7 +689,7 @@ class Product extends Model
     {
         return static::select('*')
             ->withName()
-            ->with(['brand','categories'])
+            ->with(['brand','categories','supplier'])
             ->where('id', $id)
             ->first();
     }
@@ -700,5 +702,10 @@ class Product extends Model
             ->whereIn('products.id', $ids)
             ->join('product_lottery', 'products.id', '=', 'product_lottery.product_id')
             ->get();
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class)->withDefault();
     }
 }

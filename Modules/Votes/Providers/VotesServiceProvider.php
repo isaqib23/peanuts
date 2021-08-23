@@ -3,9 +3,7 @@
 namespace Modules\Votes\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Database\Eloquent\Factory;
 use Modules\Admin\Ui\Facades\TabManager;
-use Modules\Brand\Admin\BrandTabs;
 use Modules\Review\Admin\ProductTabsExtender;
 use Modules\Votes\Admin\VotesTabs;
 

@@ -10,18 +10,18 @@ class ProductTabsExtender
     public function extend(Tabs $tabs)
     {
         $tabs->group('advanced_information')
-            ->add($this->votes());
+            ->add($this->suppliers());
     }
 
-    private function votes()
+    private function suppliers()
     {
         if (! request()->routeIs('admin.suppliers.edit')) {
             return;
         }
 
-        return tap(new Tab('votes', trans('suppliers::sidebar.suppliers')), function (Tab $tab) {
+        return tap(new Tab('suppliers', trans('suppliers::sidebar.suppliers')), function (Tab $tab) {
             $tab->weight(50);
-            $tab->view('votes::admin.suppliers.index');
+            $tab->view('suppliers::admin.suppliers.index');
         });
     }
 }

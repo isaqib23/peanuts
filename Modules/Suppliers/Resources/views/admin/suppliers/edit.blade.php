@@ -8,11 +8,11 @@
 @endcomponent
 
 @section('content')
-    <form method="POST" action="{{ route('admin.votes.update',$votes) }}" class="form-horizontal" id="votes-create-form" novalidate>
+    <form method="POST" enctype="multipart/form-data" action="{{ route('admin.suppliers.update',$supplier) }}" class="form-horizontal" id="votes-create-form" novalidate>
         {{ csrf_field() }}
         {{ method_field('put') }}
 
-        {!! $tabs->render(compact('votes')) !!}
+        {!! $tabs->render(compact('supplier')) !!}
     </form>
 @endsection
 
