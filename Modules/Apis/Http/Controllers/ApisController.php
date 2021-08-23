@@ -646,9 +646,10 @@ class ApisController extends Controller
     }
 
     /**
+     * @param Request $request
      * @return JsonResponse
      */
-    public function votes(){
+    public function votes(Request $request){
         $votes = Votes::all();
         foreach ($votes as $key => $value){
             $product_1 = Product::findById($value->product_1);
@@ -656,8 +657,19 @@ class ApisController extends Controller
 
             $product_2 = Product::findById($value->product_2);
             $product_2->vote_count = is_null($value->count_2) ? 0 : (int) $value->count_2;
+
+            $totalVotes = $product_1->vote_count + $product_2->vote_count;
+            if($totalVotes > 0) {
+                $product_2->vote_percentage = ($product_2->vote_count / $totalVotes) * 100;
+                $product_1->vote_percentage = ($product_1->vote_count / $totalVotes) * 100;
+            }else{
+                $product_2->vote_percentage = 0;
+                $product_1->vote_percentage = 0;
+            }
+
             $votes[$key]->products = [$product_1,$product_2];
 
+            $votes[$key]->vote_casted = (boolean) UserVote::where(["vote_id" => $value->id, "user_id" => $request->input("user_id")])->first();
         }
 
         return response()->json([
@@ -677,8 +689,7 @@ class ApisController extends Controller
 
         $getUserVote = UserVote::where([
             "user_id"       => $user_id,
-            "vote_id"       => $vote_id,
-            "product_id"    => $product_id
+            "vote_id"       => $vote_id
         ])->first();
 
         if(!$getUserVote){
