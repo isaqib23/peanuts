@@ -660,11 +660,11 @@ class ApisController extends Controller
 
             $totalVotes = $product_1->vote_count + $product_2->vote_count;
             if($totalVotes > 0) {
-                $product_2->vote_percentage = ($product_2->vote_count / $totalVotes) * 100;
-                $product_1->vote_percentage = ($product_1->vote_count / $totalVotes) * 100;
+                $product_2->vote_percentage = (string) ($product_2->vote_count / $totalVotes) * 100;
+                $product_1->vote_percentage = (string) ($product_1->vote_count / $totalVotes) * 100;
             }else{
-                $product_2->vote_percentage = 0;
-                $product_1->vote_percentage = 0;
+                $product_2->vote_percentage = "0";
+                $product_1->vote_percentage = "0";
             }
 
             $votes[$key]->products = [$product_1,$product_2];
