@@ -117,11 +117,13 @@ class ApisController extends Controller
             'last_name',
             'email',
             'phone',
-            'password',
+            'password'
         ]));
 
         $this->assignCustomerRole($user);
 
+        $users = User::where("id",$user->id)->first();
+        
         if($request->input('image')) {
             $file = $request->input('image');
 
@@ -141,12 +143,14 @@ class ApisController extends Controller
             ]);
 
             $request->merge(["photo" => $response->path]);
+
+            $users->update($request->all());
         }
 
         event(new CustomerRegistered($user));
 
         return response()->json([
-            'data' => $user,
+            'data' => $users,
         ]);
     }
 
