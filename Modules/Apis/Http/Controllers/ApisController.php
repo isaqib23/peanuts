@@ -670,6 +670,12 @@ class ApisController extends Controller
                 $product_1->vote_percentage = "0";
             }
 
+            $product_1->thumbnail_image = (!is_null($product_1->base_image->path)) ? $product_1->base_image : NULL;
+            $product_1->suppliers = (!is_null($product_1->supplier->id)) ? $product_1->base_image : NULL;
+
+            $product_2->thumbnail_image = (!is_null($product_2->base_image->path)) ? $product_2->base_image : NULL;
+            $product_2->suppliers = (!is_null($product_2->supplier->id)) ? $product_2->base_image : NULL;
+
             $votes[$key]->products = [$product_1,$product_2];
 
             $votes[$key]->vote_casted = (boolean) UserVote::where(["vote_id" => $value->id, "user_id" => $request->input("user_id")])->first();
