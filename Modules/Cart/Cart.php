@@ -54,7 +54,7 @@ class Cart extends DarryldecodeCart implements JsonSerializable
         $this->add([
             'id' => md5("product_id.{$product->id}:options." . serialize($options)),
             'name' => $product->name,
-            'price' => $product->current_price,
+            'price' => ($product->product_type == 2) ? $product->price : $product->current_price,
             'quantity' => $qty,
             'attributes' => [
                 'product' => $product,
