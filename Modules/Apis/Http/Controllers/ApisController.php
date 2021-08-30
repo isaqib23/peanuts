@@ -379,6 +379,13 @@ class ApisController extends Controller
             foreach ($cartArray as $key => $value){
                 if($key == "items") {
                     $cartArray["items"] = array_values($value->toArray());
+                    foreach ($cartArray["items"] as $key1 => $value1){
+                        $product = $value1->product;
+                        $cartArray["items"][$key1]->product->sold_items = (string) getSoldLottery($product->id);
+                        $cartArray["items"][$key1]->product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
+                        $cartArray["items"][$key1]->product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
+                        $cartArray["items"][$key1]->product->suppliers = (!is_null($product->supplier->id)) ? $product->base_image : NULL;
+                    }
                 }
             }
 
