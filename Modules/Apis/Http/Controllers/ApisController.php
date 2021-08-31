@@ -211,7 +211,7 @@ class ApisController extends Controller
         $product->sold_items = (string) getSoldLottery($product->id);
         $product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
         $product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
-        $product->suppliers = (!is_null($product->supplier->id)) ? $product->base_image : NULL;
+        $product->suppliers = (!is_null($product->supplier->id)) ? $product->supplier : NULL;
         return response()->json([
             'data' => $product,
         ]);
@@ -384,7 +384,7 @@ class ApisController extends Controller
                         $cartArray["items"][$key1]->product->sold_items = (string) getSoldLottery($product->id);
                         $cartArray["items"][$key1]->product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
                         $cartArray["items"][$key1]->product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
-                        $cartArray["items"][$key1]->product->suppliers = (!is_null($product->supplier->id)) ? $product->base_image : NULL;
+                        $cartArray["items"][$key1]->product->suppliers = (!is_null($product->supplier->id)) ? $product->supplier : NULL;
                     }
                 }
             }
