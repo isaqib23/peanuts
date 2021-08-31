@@ -550,7 +550,8 @@ class ApisController extends Controller
             $data[$key]->product_type = (string) $value->product_type;
             $data[$key]->sold_items = (string) getSoldLottery($value->id);
             $data[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $value->id);
-
+            $data[$key]->thumbnail_image = (!is_null($value->base_image->path)) ? $value->base_image : NULL;
+            $data[$key]->suppliers = (!is_null($value->supplier->id)) ? $value->supplier : NULL;
 
             if($value->product_type == $status){
                 array_push($response,$value);
@@ -589,6 +590,8 @@ class ApisController extends Controller
                             $products[$proKey]['lottery'] = $lottery;
                             $products[$proKey]['sold_items'] = (string)getSoldLottery($value["id"]);
                             $products[$proKey]['is_added_to_wishlist'] = isAddedToWishlist($request->input('user_id'), $value["id"]);
+                            $products[$proKey]['thumbnail_image'] = (!isset($value["base_image"]["path"])) ? $value["base_image"] : NULL;
+                            $products[$proKey]['suppliers'] = (!isset($value["supplier"]["id"])) ? $value["supplier"] : NULL;
                         }
                     }
                     $products = array_values($products);
