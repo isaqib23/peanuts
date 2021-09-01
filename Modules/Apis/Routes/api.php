@@ -27,3 +27,4 @@ Route::post('forgot_password', 'ApisController@postReset')->name('postReset');
 Route::post('get_payment_token', 'ApisController@getPaymentToken')->name('getPaymentToken');
 Route::post('complete_order', 'ApisController@completeOrder')->name('completeOrder');
 Route::post('update_profile', 'ApisController@updateProfile')->name('updateProfile');
+Route::post('clear_cart', 'ApisController@clearCart')->name('clearCart');

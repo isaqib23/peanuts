@@ -822,4 +822,18 @@ class ApisController extends Controller
             "data" => $user
         ]);
     }
+
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function clearCart(Request $request)
+    {
+        Cart::clear();
+        DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
+
+        return response()->json([
+            "data" => []
+        ]);
+    }
 }
