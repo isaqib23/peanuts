@@ -28,3 +28,4 @@ Route::post('get_payment_token', 'ApisController@getPaymentToken')->name('getPay
 Route::post('complete_order', 'ApisController@completeOrder')->name('completeOrder');
 Route::post('update_profile', 'ApisController@updateProfile')->name('updateProfile');
 Route::post('clear_cart', 'ApisController@clearCart')->name('clearCart');
+Route::post('direct_cart', 'ApisController@directCart')->name('directCart');

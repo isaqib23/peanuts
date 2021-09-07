@@ -415,6 +415,42 @@ class ApisController extends Controller
     }
 
     /**
+     * @param Request $request
+     * @return array
+     */
+    public function directCart(Request $request)
+    {
+        Cart::clear();
+        $userCart = DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
+        if(!is_null($userCart)){
+            foreach ($userCart as $cart) {
+                $getProduct = Product::getProductById($cart->product_id);
+                if($getProduct && $getProduct->product_type == 0) {
+                    Cart::store($cart->product_id, $cart->qty, json_decode($cart->options) ?? []);
+                }
+            }
+
+            $cartArray = Cart::toArray();
+            foreach ($cartArray as $key => $value){
+                if($key == "items") {
+                    $cartArray["items"] = array_values($value->toArray());
+                    foreach ($cartArray["items"] as $key1 => $value1){
+                        $product = $value1->product;
+                        $cartArray["items"][$key1]->product->sold_items = (string) getSoldLottery($product->id);
+                        $cartArray["items"][$key1]->product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
+                        $cartArray["items"][$key1]->product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
+                        $cartArray["items"][$key1]->product->suppliers = (!is_null($product->supplier->id)) ? $product->supplier : NULL;
+                    }
+                }
+            }
+
+            return $cartArray;
+        }
+
+        return [];
+    }
+
+    /**
      * @param CheckoutRequest $request
      * @param CustomerService $customerService
      * @param OrderService $orderService
