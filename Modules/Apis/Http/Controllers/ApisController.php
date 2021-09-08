@@ -227,9 +227,15 @@ class ApisController extends Controller
     {
         $getLottery = ProductLottery::where("product_id",$request->product_id)->first();
         $soldTickets = getSoldLottery($request->product_id);
-        if($getLottery && ($request->qty > (int)$getLottery->min_ticket)){
+        /*if($getLottery && ($request->qty > (int)$getLottery->min_ticket)){
             return response()->json([
                 'message' => "You can buy ".(int)$getLottery->min_ticket." items at once for this product",
+            ],422);
+        }*/
+
+        if($getLottery && ($request->qty > (int)$getLottery->max_ticket_user)){
+            return response()->json([
+                'message' => "You can buy ".(int)$getLottery->max_ticket_user." items at once for this product",
             ],422);
         }
 
