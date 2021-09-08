@@ -464,14 +464,20 @@ class ApisController extends Controller
      */
     public function checkout(CheckoutRequest $request, CustomerService $customerService, OrderService $orderService)
     {
-        /*Cart::clear();
+        Cart::clear();
         $userCart = DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
         if(!is_null($userCart)) {
             foreach ($userCart as $cart) {
-                $qty = $cart->qty;
-                Cart::store($cart->product_id, $qty, json_decode($cart->options) ?? []);
+                $getProduct = Product::getProductById($cart->product_id);
+                if($request->input('type') == "direct" && $getProduct && $getProduct->product_type == 0) {
+                    Cart::store($cart->product_id, $cart->qty, json_decode($cart->options) ?? []);
+                }
+
+                if($request->input('type') == "lottery" && $getProduct && $getProduct->product_type == 1) {
+                    Cart::store($cart->product_id, $cart->qty, json_decode($cart->options) ?? []);
+                }
             }
-        }*/
+        }
 
 
         if(Cart::items()->count() == 0) {
