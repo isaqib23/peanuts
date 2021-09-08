@@ -10,7 +10,7 @@ Route::post('add_to_cart', 'ApisController@addToCart')->name('addToCart');
 Route::post('update_cart', 'ApisController@updateCart')->name('updateCart');
 Route::post('delete_cart', 'ApisController@destroyCart')->name('destroyCart');
 Route::post('show_cart', 'ApisController@cart')->name('cart');
-Route::post('checkout', 'ApisController@checkout')->name('api.checkout');
+Route::post('order_checkout', 'ApisController@checkout')->name('api.checkout');
 Route::post('checkout_data', 'ApisController@checkoutData')->name('checkoutData');
 Route::post('add_to_wishlist', 'ApisController@addToWishList')->name('addToWishList');
 Route::post('wishlist', 'ApisController@wishlist')->name('wishlist');
