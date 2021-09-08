@@ -485,7 +485,7 @@ class ApisController extends Controller
                 'message' => "Cart is empty",
             ],422);
         }
-        dd("dsds");
+
         $order = $orderService->create($request);
 
         /*$gateway = Gateway::get($request->payment_method);
