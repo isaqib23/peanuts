@@ -11,6 +11,7 @@ class HomeController
      */
     public function index()
     {
+        return redirect('/home');exit;
         return view('public.home.index');
     }
 }
