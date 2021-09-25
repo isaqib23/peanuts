@@ -29,3 +29,4 @@ Route::post('complete_order', 'ApisController@completeOrder')->name('completeOrd
 Route::post('update_profile', 'ApisController@updateProfile')->name('updateProfile');
 Route::post('clear_cart', 'ApisController@clearCart')->name('clearCart');
 Route::post('direct_cart', 'ApisController@directCart')->name('directCart');
+Route::post('get_cart_qty', 'ApisController@getCartQty')->name('getCartQty');

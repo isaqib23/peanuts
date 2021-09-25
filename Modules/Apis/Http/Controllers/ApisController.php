@@ -910,4 +910,21 @@ class ApisController extends Controller
             "data" => []
         ]);
     }
+
+    public function getCartQty(Request $request){
+        Cart::clear();
+        $userCart = DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
+        if(!is_null($userCart)) {
+            foreach ($userCart as $cart) {
+                $getProduct = Product::getProductById($cart->product_id);
+                if ($getProduct && $getProduct->product_type == 1) {
+                    Cart::store($cart->product_id, $cart->qty, json_decode($cart->options) ?? []);
+                }
+            }
+        }
+
+        return response()->json([
+            "data" => Cart::quantity()
+        ]);
+    }
 }
