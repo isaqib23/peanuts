@@ -4,6 +4,7 @@ namespace Modules\Product\Admin;
 
 use Modules\Admin\Ui\Tab;
 use Modules\Admin\Ui\Tabs;
+use Modules\Order\Entities\OrderProduct;
 use Modules\Product\Entities\Product;
 use Modules\Suppliers\Entities\Supplier;
 use Modules\Tag\Entities\Tag;
@@ -41,12 +42,14 @@ class ProductTabs extends Tabs
             $tab->view('product::admin.products.tabs.general', [
                 'brands' => $this->brands(),
                 'categories' => Category::treeList(),
+                'winners' => $this->winners(),
                 'taxClasses' => $this->taxClasses(),
                 'tags' => Tag::list(),
                 'suppliers' => $this->suppliers(),
                 'types' => [
                     "Simple Product",
-                    "Lottery Product"
+                    "Lottery Product",
+                    "Peanut Product"
                 ]
             ]);
         });
@@ -182,5 +185,10 @@ class ProductTabs extends Tabs
     private function suppliers()
     {
         return (new Supplier())->pluck("name","id")->prepend(trans('admin::admin.form.please_select'), '');
+    }
+
+    private function winners()
+    {
+        return (new OrderProduct())->getOrdersByProduct(request()->segment(3))->prepend(trans('admin::admin.form.please_select'), '');
     }
 }

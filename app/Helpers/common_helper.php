@@ -138,3 +138,28 @@ function initializeFoloosi(){
 
     return isset($responseData['data']) ? $responseData['data'] : $responseData;
 }
+
+function updateWinner($product,$data){
+
+    if($data["product_type"] == 1 && !is_null($data["winner_id"])) {
+        $winner = \DB::table('winners')->where("product_id",$product->id)->first();
+
+        if($winner){
+            \DB::table('winners')->where("product_id",$product->id)->update([
+                "winner_id"     => $data["winner_id"],
+                "updated_at"    => date("Y-m-d H:i:s")
+            ]);
+
+            return true;
+        }
+
+        \DB::table('winners')->insert([
+            "product_id"    => $product->id,
+            "winner_id"     => $data["winner_id"],
+            "created_at"    => date("Y-m-d H:i:s"),
+            "updated_at"    => date("Y-m-d H:i:s")
+        ]);
+
+        return true;
+    }
+}

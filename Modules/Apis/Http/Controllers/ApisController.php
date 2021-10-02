@@ -927,4 +927,24 @@ class ApisController extends Controller
             "data" => Cart::quantity()
         ]);
     }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getWinners(Request $request){
+        $getWinners = \DB::table('winners')->get();
+        if($getWinners){
+            $users = (new User())->getWinners();
+            return response()->json([
+                "data" => $users
+            ]);
+        }
+
+        return response()->json([
+            "data" => []
+        ]);
+    }
 }
+
+

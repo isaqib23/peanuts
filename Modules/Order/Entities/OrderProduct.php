@@ -2,6 +2,7 @@
 
 namespace Modules\Order\Entities;
 
+use Illuminate\Support\Facades\Cache;
 use Modules\Support\Money;
 use Modules\Support\Eloquent\Model;
 use Modules\Product\Entities\Product;
@@ -108,5 +109,16 @@ class OrderProduct extends Model
     public function getLineTotalAttribute($total)
     {
         return Money::inDefaultCurrency($total);
+    }
+
+    public function getOrdersByProduct($product_id){
+        $results = \DB::select( \DB::raw("SELECT O.customer_id AS id, CONCAT(O.customer_first_name,' ',O.customer_last_name) AS 'name'
+        FROM orders AS O
+        JOIN order_products AS OP ON OP.order_id = O.id
+        WHERE OP.product_id = :product_id"), array(
+            'product_id' => $product_id,
+        ));
+
+        return Order::hydrate($results)->sortBy('name')->pluck('name', 'id');
     }
 }

@@ -135,6 +135,9 @@ trait HasCrudActions
         $allowedRoutes = ["admin.products"];
         if(in_array($this->getRoutePrefix(), $allowedRoutes) && $data['product']->product_type == 1){
             $data = getLotteryProduct($id, $data);
+            $getWinner = \DB::table('winners')->where("product_id",$data["product"]->product_id)->first();
+
+            $data["product"]->winner_id = ($getWinner) ? $getWinner->winner_id : null;
         }
 
         return view("{$this->viewPath}.edit", $data);
@@ -185,6 +188,7 @@ trait HasCrudActions
         $allowedRoutes = ["admin.products.update","admin.products.store"];
         if(in_array($this->getRequest('update')->route()->getName(), $allowedRoutes)){
             updateLotteryProduct($entity,$this->getRequest('store')->all(), 'update');
+            updateWinner($entity,$this->getRequest('store')->all());
         }
 
         if (method_exists($this, 'redirectTo')) {

@@ -30,3 +30,4 @@ Route::post('update_profile', 'ApisController@updateProfile')->name('updateProfi
 Route::post('clear_cart', 'ApisController@clearCart')->name('clearCart');
 Route::post('direct_cart', 'ApisController@directCart')->name('directCart');
 Route::post('get_cart_qty', 'ApisController@getCartQty')->name('getCartQty');
+Route::post('winners', 'ApisController@getWinners')->name('winners');
