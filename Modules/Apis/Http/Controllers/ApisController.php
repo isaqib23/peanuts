@@ -962,8 +962,7 @@ class ApisController extends Controller
      * @return JsonResponse
      */
     public function peanutProducts(Request $request){
-        $status = 2;
-        $products = Product::filterByType($status);
+        $products = (new Product())->getPeanutProducts();
 
         if($products->count() > 0){
             foreach ($products as $key => $value){

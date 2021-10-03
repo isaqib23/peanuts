@@ -708,4 +708,12 @@ class Product extends Model
     {
         return $this->belongsTo(Supplier::class)->withDefault();
     }
+
+    public function getPeanutProducts(){
+        return static::select('products.*')
+            ->withName()
+            ->with(['brand','categories'])
+            ->where('product_type', 2)
+            ->get();
+    }
 }
