@@ -249,7 +249,7 @@ class User extends EloquentUser implements AuthenticatableContract
      * @return mixed
      */
     public function getWinners(){
-        $results = \DB::select( \DB::raw("SELECT U.id AS id, CONCAT(U.first_name,' ',U.last_name) AS 'name', U.photo, P.name AS title, CONCAT(U.id,'',OP.order_id) AS order_id, OP.product_id, O.created_at
+        $results = \DB::select( \DB::raw("SELECT U.id AS id, CONCAT(U.first_name,' ',U.last_name) AS 'name', U.photo, P.name AS title, CONCAT(U.id,'',OP.order_id) AS order_id, P.product_id, O.created_at
         FROM winners AS O
         JOIN order_products AS OP ON OP.order_id = O.id
         JOIN users AS U ON U.id = O.winner_id

@@ -938,7 +938,7 @@ class ApisController extends Controller
             $users = (new User())->getWinners();
             $response = [];
             foreach ($users as $key => $value){
-                $product = (new Product())->getProductById($value->product_id);
+                $product = Product::getProductById($value->product_id);
                 if($product) {
                     $value->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
                     array_push($response, $value);
