@@ -189,6 +189,6 @@ class ProductTabs extends Tabs
 
     private function winners()
     {
-        return (new OrderProduct())->getOrdersByProduct(request()->segment(3))->prepend(trans('admin::admin.form.please_select'), '');
+        return (new OrderProduct())->getOrdersByProduct(request()->segment(4))->prepend(trans('admin::admin.form.please_select'), '');
     }
 }
