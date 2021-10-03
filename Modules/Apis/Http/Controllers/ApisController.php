@@ -958,10 +958,10 @@ class ApisController extends Controller
     }
 
     /**
-     * @param ProductsRequest $request
+     * @param Request $request
      * @return JsonResponse
      */
-    public function peanutProducts(ProductsRequest $request){
+    public function peanutProducts(Request $request){
         $status = 2;
         $products = Product::filterByType($status);
 
