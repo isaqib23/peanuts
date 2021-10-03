@@ -31,3 +31,4 @@ Route::post('clear_cart', 'ApisController@clearCart')->name('clearCart');
 Route::post('direct_cart', 'ApisController@directCart')->name('directCart');
 Route::post('get_cart_qty', 'ApisController@getCartQty')->name('getCartQty');
 Route::post('winners', 'ApisController@getWinners')->name('winners');
+Route::post('peanut_products', 'ApisController@peanutProducts')->name('peanutProducts');

@@ -941,6 +941,8 @@ class ApisController extends Controller
                 $product = Product::getProductById($value->product_id);
                 if($product) {
                     $value->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
+                    $value->order_id = md5($value->order_id);
+                    $value->created_at = date('Y-m-d',strtotime($value->created_at));
                     array_push($response, $value);
                 }
             }
@@ -952,6 +954,33 @@ class ApisController extends Controller
 
         return response()->json([
             "data" => []
+        ]);
+    }
+
+    /**
+     * @param ProductsRequest $request
+     * @return JsonResponse
+     */
+    public function peanutProducts(ProductsRequest $request){
+        $status = 3;
+        $products = Product::filterByType($status);
+
+        if($products->count() > 0){
+            foreach ($products as $key => $value){
+                if($value->product_type == 1){
+                    $products[$key]->lottery = ProductLottery::where('product_id',$value->id)->first();
+                }else{
+                    $products[$key]->lottery = ProductLottery::where('link_product',$value->id)->first();
+                }
+
+                $products[$key]->sold_items = (string) getSoldLottery($value->id);
+                $products[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $value->id);
+                $products[$key]->thumbnail_image = (!is_null($value->base_image->path)) ? $value->base_image : NULL;
+                $products[$key]->suppliers = (!is_null($value->supplier->id)) ? $value->supplier : NULL;
+            }
+        }
+        return response()->json([
+            'data' => $products,
         ]);
     }
 }
