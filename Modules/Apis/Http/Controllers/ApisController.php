@@ -174,6 +174,7 @@ class ApisController extends Controller
         $status = ($request->input('status') == 'simple') ? 0 :1;
         $products = Product::filterByType($status);
 
+        $response = [];
         if($products->count() > 0){
             foreach ($products as $key => $value){
                 if($value->product_type == 1){
@@ -186,10 +187,13 @@ class ApisController extends Controller
                 $products[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $value->id);
                 $products[$key]->thumbnail_image = (!is_null($value->base_image->path)) ? $value->base_image : NULL;
                 $products[$key]->suppliers = (!is_null($value->supplier->id)) ? $value->supplier : NULL;
+                if($products[$key]->lottery){
+                    array_push($response,$products[$key]);
+                }
             }
         }
         return response()->json([
-            'data' => $products,
+            'data' => $response,
         ]);
     }
 
