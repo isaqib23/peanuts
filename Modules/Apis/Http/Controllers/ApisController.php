@@ -1003,7 +1003,7 @@ class ApisController extends Controller
         $postData->action = "PURCHASE";
         $postData->amount = new \StdClass();
         $postData->amount->currencyCode = "AED";
-        $postData->amount->value = 100;
+        $postData->amount->value = $request->input('amount');
 
         $outlet = "449035c2-5594-40b5-af4f-daf161418358";
         $token = $access_token;
@@ -1029,7 +1029,7 @@ class ApisController extends Controller
         return response()->json([
             'data' => [
                 "order_reference"       => $order_reference,
-                "order_payment_url"     => $order_paypage_url,
+                "order_payment_url"     => $order_paypage_url."&slim=true",
             ],
         ]);
     }
