@@ -978,6 +978,61 @@ class ApisController extends Controller
             'data' => $products,
         ]);
     }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function createPayment(Request $request){
+        $apikey = "ZDgzZjQ5ODEtNGJiZS00NjFkLWFiZmMtYTExYzNlMzVkZmZlOmRkMzljYmQ5LTI2MjktNDc2OS04MjA3LWJhOWJmY2FhMzNmZg==";     // enter your API key here
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://api-gateway.sandbox.ngenius-payments.com/identity/auth/access-token");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            "accept: application/vnd.ni-identity.v1+json",
+            "authorization: Basic ".$apikey,
+            "content-type: application/vnd.ni-identity.v1+json"
+        ));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS,  "{\"realmName\":\"ni\"}");
+        $output = json_decode(curl_exec($ch));
+        $access_token = $output->access_token;
+        curl_close ($ch);
+
+        $postData = new \StdClass();
+        $postData->action = "PURCHASE";
+        $postData->amount = new \StdClass();
+        $postData->amount->currencyCode = "AED";
+        $postData->amount->value = 100;
+
+        $outlet = "449035c2-5594-40b5-af4f-daf161418358";
+        $token = $access_token;
+
+        $json = json_encode($postData);
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, "https://api-gateway.sandbox.ngenius-payments.com/transactions/outlets/".$outlet."/orders");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            "Authorization: Bearer ".$token,
+            "Content-Type: application/vnd.ni-payment.v2+json",
+            "Accept: application/vnd.ni-payment.v2+json"));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+
+        $output = json_decode(curl_exec($ch));
+        $order_reference = $output->reference;
+        $order_paypage_url = $output->_links->payment->href;
+
+        curl_close ($ch);
+
+        return response()->json([
+            'data' => [
+                "order_reference"       => $order_reference,
+                "order_payment_url"     => $order_paypage_url,
+            ],
+        ]);
+    }
 }
 
 
