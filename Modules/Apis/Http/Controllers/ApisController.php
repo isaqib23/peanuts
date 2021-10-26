@@ -984,7 +984,10 @@ class ApisController extends Controller
      * @return JsonResponse
      */
     public function createPayment(Request $request){
-        $apikey = "ZDgzZjQ5ODEtNGJiZS00NjFkLWFiZmMtYTExYzNlMzVkZmZlOmRkMzljYmQ5LTI2MjktNDc2OS04MjA3LWJhOWJmY2FhMzNmZg==";     // enter your API key here
+        $user = User::where("id",$request->input('user_id'))->first();
+        $userAddress = Address::where("id",$request->input('address'))->first();
+
+        $apikey = env('NETWORK_API_KEY');
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://api-gateway.sandbox.ngenius-payments.com/identity/auth/access-token");
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
@@ -1002,10 +1005,21 @@ class ApisController extends Controller
         $postData = new \StdClass();
         $postData->action = "PURCHASE";
         $postData->amount = new \StdClass();
+        $postData->merchantAttributes = new \StdClass();
+        $postData->billingAddress = new \StdClass();
         $postData->amount->currencyCode = "AED";
-        $postData->amount->value = $request->input('amount');
+        $postData->amount->value = bcmul($request->input('amount'),100);
+        $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/order_confirmation";
+        $postData->merchantAttributes->skipConfirmationPage = true;
+        $postData->merchantAttributes->merchantOrderReference = $request->input('user_id')."-".$request->input('address');
+        $postData->emailAddress = $user->email;
+        $postData->billingAddress->firstName = $userAddress->first_name;
+        $postData->billingAddress->lastName = $userAddress->last_name;
+        $postData->billingAddress->address1 = $userAddress->address_1;
+        $postData->billingAddress->city = $userAddress->city;
+        $postData->billingAddress->countryCode = $userAddress->country;
 
-        $outlet = "449035c2-5594-40b5-af4f-daf161418358";
+        $outlet = env('NETWORK_OUTLET');
         $token = $access_token;
 
         $json = json_encode($postData);
@@ -1032,6 +1046,75 @@ class ApisController extends Controller
                 "order_payment_url"     => $order_paypage_url."&slim=true",
             ],
         ]);
+    }
+
+    public function order_confirmation(Request $request, OrderService $orderService){
+        $orderRef = "95666b99-3a0a-4516-a433-c26995daa155";//$request->input('ref');
+
+        $apikey = env('NETWORK_API_KEY');
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://api-gateway.sandbox.ngenius-payments.com/identity/auth/access-token");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            "accept: application/vnd.ni-identity.v1+json",
+            "authorization: Basic ".$apikey,
+            "content-type: application/vnd.ni-identity.v1+json"
+        ));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS,  "{\"realmName\":\"ni\"}");
+        $output = json_decode(curl_exec($ch));
+        $access_token = $output->access_token;
+        curl_close ($ch);
+
+        $outlet = env('NETWORK_OUTLET');
+        $token = $access_token;
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://api-gateway.sandbox.ngenius-payments.com/transactions/outlets/".$outlet."/orders/".$orderRef);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            "Authorization: Bearer ".$token,
+            "Content-Type: application/vnd.ni-payment.v2+json",
+            "Accept: application/vnd.ni-payment.v2+json"));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $output = json_decode(curl_exec($ch));
+        dd($output);
+        $callBackData = $output->merchantAttributes->merchantOrderReference;
+        $user_id = strtok($callBackData, '-');
+        $address_id = substr($callBackData, strpos($callBackData, "-") + 1);
+
+        $user = User::where("id",$user_id)->first();
+        $userAddress = Address::where("id",$address_id)->first();
+        $request->merge([
+            "user_id"   => $user_id,
+            "transaction_id"   => $orderRef,
+            "customer_email"   => $user->email,
+            "customer_phone"   => $user->phone,
+            "billing"   => $userAddress->toArray(),
+            "billingAddressId"   => $address_id,
+            "shippingAddressId"   => $address_id,
+            "newBillingAddress"   => false,
+            "newShippingAddress"   => false,
+            "payment_method"   => "foloosi",
+        ]);
+
+        $order = $orderService->create($request);
+
+        $orderId = $order->id;
+
+        event(new OrderPlaced($order));
+
+        updateProductLottery($orderId);
+
+        $order = Order::findOrFail($orderId);
+
+        $order->storeFoloosiTransaction($request->input('transaction_id'));
+
+        $order->update(['status' => "completed"]);
+
+        DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
+dd($order);
+        curl_close ($ch);
     }
 }
 

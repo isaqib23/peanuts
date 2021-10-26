@@ -11,6 +11,4 @@
 |
 */
 
-Route::prefix('apis')->group(function() {
-    Route::get('/', 'ApisController@index');
-});
+Route::get('/order_confirmation', 'ApisController@order_confirmation');
