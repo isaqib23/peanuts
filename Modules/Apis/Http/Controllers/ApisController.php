@@ -1078,7 +1078,7 @@ class ApisController extends Controller
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $output = json_decode(curl_exec($ch));
-        dd($output);
+        
         $callBackData = $output->merchantAttributes->merchantOrderReference;
         $user_id = strtok($callBackData, '-');
         $address_id = substr($callBackData, strpos($callBackData, "-") + 1);
