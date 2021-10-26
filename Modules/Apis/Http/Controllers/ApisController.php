@@ -1049,7 +1049,7 @@ class ApisController extends Controller
     }
 
     public function order_confirmation(Request $request, OrderService $orderService){
-        $orderRef = "95666b99-3a0a-4516-a433-c26995daa155";//$request->input('ref');
+        $orderRef = $request->input('ref');
 
         $apikey = env('NETWORK_API_KEY');
         $ch = curl_init();
@@ -1113,8 +1113,10 @@ class ApisController extends Controller
         $order->update(['status' => "completed"]);
 
         DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
-dd($order);
+
         curl_close ($ch);
+
+        return redirect('/home');exit;
     }
 }
 
