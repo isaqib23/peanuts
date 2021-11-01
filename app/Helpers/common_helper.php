@@ -178,9 +178,9 @@ function generateAirWayBill($user_id,$address){
     $postData->Country = "AE";
     $postData->AirwayBillData = new \StdClass();
     $postData->AirwayBillData->AirWayBillCreatedBy = $userAddress->first_name." ".$userAddress->last_name;
-    $postData->AirwayBillData->CODAmount = "";
+    $postData->AirwayBillData->CODAmount = "0";
     $postData->AirwayBillData->CODCurrency = "";
-    $postData->AirwayBillData->Destination = "";
+    $postData->AirwayBillData->Destination = "BOM";
     $postData->AirwayBillData->DutyConsigneePay = "0";
     $postData->AirwayBillData->GoodsDescription = "DOCUMENTS";
     $postData->AirwayBillData->NumberofPeices = 1;
