@@ -3,7 +3,7 @@
 namespace Modules\Suppliers\Admin;
 
 use Modules\Admin\Ui\AdminTable;
-use Modules\Votes\Entities\Suppliers;
+use Modules\Suppliers\Entities\Supplier;
 use Yajra\DataTables\DataTables;
 
 class SuppliersTable extends AdminTable

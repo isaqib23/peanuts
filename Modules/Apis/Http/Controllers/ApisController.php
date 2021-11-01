@@ -1078,7 +1078,7 @@ class ApisController extends Controller
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $output = json_decode(curl_exec($ch));
-        
+
         $callBackData = $output->merchantAttributes->merchantOrderReference;
         $user_id = strtok($callBackData, '-');
         $address_id = substr($callBackData, strpos($callBackData, "-") + 1);
@@ -1111,6 +1111,9 @@ class ApisController extends Controller
         $order->storeFoloosiTransaction($request->input('transaction_id'));
 
         $order->update(['status' => "completed"]);
+
+        $airway_bill = generateAirWayBill($user_id, $address_id);
+        $order->update(['airway_bill' => $airway_bill]);
 
         DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
 

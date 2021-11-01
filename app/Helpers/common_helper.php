@@ -1,6 +1,9 @@
 <?php
 
-function updateLotteryProduct($product,$data,$method){
+use Modules\Address\Entities\Address;
+use Modules\User\Entities\User;
+
+function updateLotteryProduct($product, $data, $method){
     $currentPrice = $data["price"];
     if($data["product_type"] == 1) {
         $currentPrice = $data["current_price"];
@@ -162,4 +165,75 @@ function updateWinner($product,$data){
 
         return true;
     }
+}
+
+function generateAirWayBill($user_id,$address){
+    $user = User::where("id",$user_id)->first();
+    $userAddress = Address::where("id",$address)->first();
+
+    $postData = new \StdClass();
+    $postData->UserName = "3000";
+    $postData->Password = "fftes";
+    $postData->AccountNo = "15527";
+    $postData->Country = "AE";
+    $postData->AirwayBillData = new \StdClass();
+    $postData->AirwayBillData->AirWayBillCreatedBy = $userAddress->first_name." ".$userAddress->last_name;
+    $postData->AirwayBillData->CODAmount = "";
+    $postData->AirwayBillData->CODCurrency = "";
+    $postData->AirwayBillData->Destination = "";
+    $postData->AirwayBillData->DutyConsigneePay = "0";
+    $postData->AirwayBillData->GoodsDescription = "DOCUMENTS";
+    $postData->AirwayBillData->NumberofPeices = 1;
+    $postData->AirwayBillData->Origin = "DXB";
+    $postData->AirwayBillData->ProductType = "XPS";
+    $postData->AirwayBillData->ReceiversAddress1 = $userAddress->address_1;
+    $postData->AirwayBillData->ReceiversAddress2 = $userAddress->address_2;
+    $postData->AirwayBillData->ReceiversCity = $userAddress->city;
+    $postData->AirwayBillData->ReceiversSubCity = "";
+    $postData->AirwayBillData->ReceiversCountry = $userAddress->country;
+    $postData->AirwayBillData->ReceiversCompany = $userAddress->first_name." ".$userAddress->last_name;
+    $postData->AirwayBillData->ReceiversContactPerson = $userAddress->first_name." ".$userAddress->last_name;
+    $postData->AirwayBillData->ReceiversEmail = "";
+    $postData->AirwayBillData->ReceiversGeoLocation = "";
+    $postData->AirwayBillData->ReceiversMobile = $user->phone;
+    $postData->AirwayBillData->ReceiversPhone = $user->phone;
+    $postData->AirwayBillData->ReceiversPinCode = $userAddress->zip;
+    $postData->AirwayBillData->ReceiversProvince = "";
+    $postData->AirwayBillData->SendersAddress1 = "21 A AL KHABAISI STREET";
+    $postData->AirwayBillData->SendersAddress2 = "DEIRA DUBAI";
+    $postData->AirwayBillData->SendersCity = "DUBAI";
+    $postData->AirwayBillData->SendersSubCity  = "";
+    $postData->AirwayBillData->SendersCountry = "AE";
+    $postData->AirwayBillData->SendersCompany = "FIRST FLIGHT COURIERS ME LLC";
+    $postData->AirwayBillData->SendersContactPerson = "SANTHOSH BHASKAR";
+    $postData->AirwayBillData->SendersEmail = "santhosh@firstflightme.com";
+    $postData->AirwayBillData->SendersGeoLocation = "";
+    $postData->AirwayBillData->SendersMobile = "+971558453274";
+    $postData->AirwayBillData->SendersPhone = "+97142530300";
+    $postData->AirwayBillData->SendersPinCode = "";
+    $postData->AirwayBillData->ServiceType = "NOR";
+    $postData->AirwayBillData->ShipmentDimension = "15X20X25";
+    $postData->AirwayBillData->ShipmentInvoiceCurrency = "USD";
+    $postData->AirwayBillData->ShipmentInvoiceValue = 10;
+    $postData->AirwayBillData->ShipperReference = "ABCDEF74";
+    $postData->AirwayBillData->ShipperVatAccount = "";
+    $postData->AirwayBillData->SpecialInstruction = "";
+    $postData->AirwayBillData->Weight = 1;
+
+
+    $json = json_encode($postData);
+    $ch = curl_init();
+
+    curl_setopt($ch, CURLOPT_URL, "https://ontrack.firstflightme.com/FFCService.svc/CreateAirwayBill");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+
+    $output = json_decode(curl_exec($ch));
+    dd($output);
+    $AirwayBillNumber = $output->AirwayBillNumber;
+
+    curl_close ($ch);
+
+    return $AirwayBillNumber;
 }
