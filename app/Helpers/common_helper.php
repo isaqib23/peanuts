@@ -226,11 +226,10 @@ function generateAirWayBill($user_id,$address){
 
     curl_setopt($ch, CURLOPT_URL, "https://ontrack.firstflightme.com/FFCService.svc/CreateAirwayBill");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt( $ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
     curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
 
     $output = json_decode(curl_exec($ch));
-    dd($output);
     $AirwayBillNumber = $output->AirwayBillNumber;
 
     curl_close ($ch);
