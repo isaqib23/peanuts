@@ -1,6 +1,8 @@
 <?php
 
 use Modules\Address\Entities\Address;
+use Modules\Cart\Facades\Cart;
+use Modules\Product\Entities\Product;
 use Modules\User\Entities\User;
 
 function updateLotteryProduct($product, $data, $method){
@@ -238,21 +240,19 @@ function generateAirWayBill($user_id,$address){
 }
 
 function getDHLDeliveryRate($user, $address){
-    //"2021-11-04T13:00:00GMT+00:00"
     $date = new \DateTime("now");
     $plannedShippingDateAndTime = $date->format('Y-m-d\Th:i \G\M\TO');
-    //exit;
     $postData = [
         "customerDetails"               => [
             "shipperDetails"    => [
-                "postalCode"    => "14800",
-                "cityName"      => "Prague",
-                "countryCode"   => "CZ",
-                "provinceCode"  => "CZ",
-                "addressLine1"  => "addres1",
-                "addressLine2"  => "addres2",
-                "addressLine3"  => "addres3",
-                "countyName"    => "Central Bohemia"
+                "postalCode"    => $address->zip,
+                "cityName"      => $address->city,
+                "countryCode"   => $address->country,
+                "provinceCode"  => $address->country,
+                "addressLine1"  => $address->address_1,
+                "addressLine2"  => " ",
+                "addressLine3"  => " ",
+                "countyName"    => \Symfony\Component\Intl\Countries::getName($address->country)
             ],
             "receiverDetails"   => [
                 "postalCode" => "14800",
@@ -308,5 +308,68 @@ function getDHLDeliveryRate($user, $address){
 
     curl_close ($ch);
 
+    return [
+        "carrier_name"      => $output->products[0]->productName,
+        "delivery_rate"     => $output->products[0]->totalPrice[0]->price,
+        "delivery_in_days"  => $output->products[0]->deliveryCapabilities->totalTransitDays
+    ];
+}
+
+function getUserCart($request){
+    Cart::clear();
+    $userCart = DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
+    if(!is_null($userCart)){
+        foreach ($userCart as $cart) {
+            $getProduct = Product::getProductById($cart->product_id);
+            if($getProduct && $getProduct->product_type == 1) {
+                Cart::store($cart->product_id, $cart->qty, json_decode($cart->options) ?? []);
+            }
+        }
+
+        $shippingMethod = getUserShipping($request);
+        if($shippingMethod) {
+            Cart::addShippingMethod($shippingMethod);
+        }
+
+        $cartArray = Cart::toArray();
+        foreach ($cartArray as $key => $value){
+            if($key == "items") {
+                $cartArray["items"] = array_values($value->toArray());
+                foreach ($cartArray["items"] as $key1 => $value1){
+                    $product = $value1->product;
+                    $cartArray["items"][$key1]->product->sold_items = (string) getSoldLottery($product->id);
+                    $cartArray["items"][$key1]->product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
+                    $cartArray["items"][$key1]->product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
+                    $cartArray["items"][$key1]->product->suppliers = (!is_null($product->supplier->id)) ? $product->supplier : NULL;
+                }
+            }
+        }
+
+        return $cartArray;
+    }
+
     return [];
+}
+
+function saveUserShipping($request,$userShipping){
+    $shipping = \DB::table("user_shippings")->where("user_id",$request->user_id)->first();
+    if(!$shipping){
+        return \DB::table("user_shippings")->insert([
+            "address_id"    => $request->address_id,
+            "label"         => $userShipping->label,
+            "amount"        => $userShipping->amount,
+            "user_id"        => $request->user_id,
+        ]);
+    }else{
+        return \DB::table("user_shippings")->where("user_id",$request->user_id)
+            ->update([
+                "address_id"    => $request->address_id,
+                "label"         => $userShipping->label,
+                "amount"        => $userShipping->amount,
+            ]);
+    }
+}
+
+function getUserShipping($request){
+    return \DB::table("user_shippings")->where("user_id",$request->user_id)->first();
 }
