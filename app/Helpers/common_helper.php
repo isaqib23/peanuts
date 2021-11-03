@@ -236,3 +236,77 @@ function generateAirWayBill($user_id,$address){
 
     return $AirwayBillNumber;
 }
+
+function getDHLDeliveryRate($user, $address){
+    //"2021-11-04T13:00:00GMT+00:00"
+    $date = new \DateTime("now");
+    $plannedShippingDateAndTime = $date->format('Y-m-d\Th:i \G\M\TO');
+    //exit;
+    $postData = [
+        "customerDetails"               => [
+            "shipperDetails"    => [
+                "postalCode"    => "14800",
+                "cityName"      => "Prague",
+                "countryCode"   => "CZ",
+                "provinceCode"  => "CZ",
+                "addressLine1"  => "addres1",
+                "addressLine2"  => "addres2",
+                "addressLine3"  => "addres3",
+                "countyName"    => "Central Bohemia"
+            ],
+            "receiverDetails"   => [
+                "postalCode" => "14800",
+                "cityName" => "Dubai",
+                "countryCode" => "AE",
+                "provinceCode" => "CZ",
+                "addressLine1" => "addres1",
+                "addressLine2" => "addres2",
+                "addressLine3" => "addres3",
+                "countyName" => "Central Bohemia"
+            ]
+        ],
+        "accounts"                      => [
+            [
+                "typeCode"  => "shipper",
+                "number"    => "962394856"
+            ]
+        ],
+        "productCode"                   => "P",
+        "plannedShippingDateAndTime"    => $plannedShippingDateAndTime,
+        "unitOfMeasurement"             => "metric",
+        "isCustomsDeclarable"           => true,
+        "packages"                      => [
+            [
+                "typeCode"      => "3BX",
+                "weight"        => 10.5,
+                "dimensions"    => [
+                    "length" => 25,
+                    "width" => 35,
+                    "height" => 15
+                ]
+            ]
+        ],
+    ];
+
+
+    $json = json_encode($postData);
+    $ch = curl_init();
+
+    $headers = array(
+        "Content-Type: application/json",
+        "Accept: application/json"
+    );
+
+    curl_setopt($ch, CURLOPT_URL, "https://express.api.dhl.com/mydhlapi/test/rates");
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_USERPWD, env('DHL_API_KEY') . ":" . env('DHL_SECRET_KEY'));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt( $ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+
+    $output = json_decode(curl_exec($ch));
+
+    curl_close ($ch);
+
+    return [];
+}

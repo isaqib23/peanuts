@@ -212,6 +212,12 @@ class ApisController extends Controller
             $product->lottery = $lottery;
         }
 
+        $getCart = DB::table("user_cart")->where([
+            "user_id"       => $request->input('user_id'),
+            "product_id"    => $request->input('id')
+        ])->first();
+
+        $product->cart_qty = ($getCart) ? $getCart->qty : 0;
         $product->sold_items = (string) getSoldLottery($product->id);
         $product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
         $product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
@@ -1120,6 +1126,29 @@ class ApisController extends Controller
         curl_close ($ch);
 
         return redirect('/home');exit;
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function get_delivery_rates(Request $request){
+        $user_id = $request->input('user_id');
+        $address_id = $request->input('address_id');
+
+        $userAddress = Address::where("id",$address_id)->first();
+
+        if($userAddress->country == "AE"){
+            return response()->json([
+                'data' => [
+                    "delivery_rate" => 35
+                ],
+            ]);
+        }
+
+        $user = User::where("id",$user_id)->first();
+
+        $dhlRate = getDHLDeliveryRate($user, $userAddress);
     }
 }
 
