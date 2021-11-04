@@ -16,9 +16,11 @@ class UserShippingsTable extends Migration
         Schema::create('user_shippings', function (Blueprint $table) {
             $table->id();
             $table->integer('user_id');
-            $table->integer('address_id');
-            $table->string('label');
-            $table->string('amount');
+            $table->integer('delivery_type');
+            $table->integer('address_id')->nullable();
+            $table->string('label')->nullable();
+            $table->string('amount')->nullable();
+            $table->string('content')->nullable();
 
 
             $table->timestamps();

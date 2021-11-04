@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static object get(string $name)
  * @method static \Modules\Shipping\ShippingMethodManager register(string $name, callable|object $driver)
  * @method static int count()
+ * @method static string content()
  * @method static bool isEmpty()
  * @method static bool isNotEmpty()
  *

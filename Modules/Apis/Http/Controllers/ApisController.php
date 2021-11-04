@@ -1110,46 +1110,70 @@ class ApisController extends Controller
 
         $user_id = $request->input('user_id');
         $address_id = $request->input('address_id');
+        $delivery_type = $request->input('delivery_type');
+        $shippingMethod = new \stdClass();
+        $shippingMethod->delivery_type = $delivery_type;
+        $shippingMethod->content = "";
+        saveUserShipping($request, $shippingMethod);
 
-        $userAddress = Address::where("id",$address_id)->first();
+        if ($address_id) {
+            $userAddress = Address::where("id", $address_id)->first();
+            if ($userAddress->country == "AE") {
+                $shippingMethod = new \stdClass();
+                $shippingMethod->label = "First Flight";
+                $shippingMethod->content = "";
+                $shippingMethod->amount = 35;
+                saveUserShipping($request, $shippingMethod);
+                Cart::addShippingMethod($shippingMethod);
 
-        if($userAddress->country == "AE"){
-            $shippingMethod = new \stdClass();
-            $shippingMethod->label = "First Flight";
-            $shippingMethod->amount = 35;
-            saveUserShipping($request,$shippingMethod);
-            Cart::addShippingMethod($shippingMethod);
+                return response()->json([
+                    'data' => [
+                        "carrier_name" => null,
+                        "delivery_rate" => 35,
+                        "delivery_in_days" => null,
+                        "cart_total" => Cart::total()->currency() . " " . number_format((float)Cart::total()->amount(), 2, '.', '')
+                    ],
+                ]);
+            }
 
+            $user = User::where("id", $user_id)->first();
+
+            try {
+                $dhlRate = getDHLDeliveryRate($user, $userAddress);
+                $shippingMethod = new \stdClass();
+                $shippingMethod->label = "DHL";
+                $shippingMethod->content = $dhlRate["carrier_name"]." - approx ".$dhlRate["delivery_in_days"]." days";
+                $shippingMethod->amount = $dhlRate["delivery_rate"];
+                saveUserShipping($request, $shippingMethod);
+                Cart::addShippingMethod($shippingMethod);
+
+                $dhlRate['cart_total'] = Cart::total()->currency() . " " . number_format((float)Cart::total()->amount(), 2, '.', '');
+                return response()->json([
+                    'data' => $dhlRate,
+                ]);
+            } catch (\Exception $e) {
+                Cart::removeShippingMethod();
+                \DB::table("user_shippings")->where("user_id",$request->user_id)
+                    ->update([
+                        "address_id"        => null,
+                        "content"    => null,
+                        "label"         => null,
+                        "amount"        => null,
+                        "updated_at"    => date("Y-m-d H:i:s")
+                    ]);
+                return response()->json([
+                    'message' => "Delivery address is not valid",
+                ], 422);
+            }
+        }else{
             return response()->json([
                 'data' => [
-                    "carrier_name"      => null,
-                    "delivery_rate"     => 35,
-                    "delivery_in_days"  => null,
-                    "cart_total"        => Cart::total()->currency()." ".Cart::total()->amount()
+                    "carrier_name" => null,
+                    "delivery_rate" => null,
+                    "delivery_in_days" => null,
+                    "cart_total" => Cart::total()->currency() . " " . number_format((float)Cart::total()->amount(), 2, '.', '')
                 ],
             ]);
-        }
-
-        $user = User::where("id",$user_id)->first();
-
-        try {
-            $dhlRate = getDHLDeliveryRate($user, $userAddress);
-            $shippingMethod = new \stdClass();
-            $shippingMethod->label = "DHL";
-            $shippingMethod->amount = $dhlRate["delivery_rate"];
-            saveUserShipping($request,$shippingMethod);
-            Cart::addShippingMethod($shippingMethod);
-
-            $dhlRate['cart_total'] = Cart::total()->currency()." ".Cart::total()->amount();
-            return response()->json([
-                'data' => $dhlRate,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'data' => [
-                    "order_reference"       => "Delivery address is not valid",
-                ],
-            ],422);
         }
     }
 }

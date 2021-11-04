@@ -327,8 +327,10 @@ function getUserCart($request){
         }
 
         $shippingMethod = getUserShipping($request);
-        if($shippingMethod) {
+        if($shippingMethod && !is_null($shippingMethod->address_id)) {
             Cart::addShippingMethod($shippingMethod);
+        }else{
+            Cart::removeShippingMethod();
         }
 
         $cartArray = Cart::toArray();
@@ -345,6 +347,9 @@ function getUserCart($request){
             }
         }
 
+        $cartArray["shipping_amount"] = Cart::shippingCost()->amount();
+        $cartArray["shipping_content"] = (Cart::hasShippingMethod()) ? Cart::shippingMethod()->content() : "";
+        $cartArray["shipping_address"] = (Cart::hasShippingMethod()) ? Cart::shippingMethod()->address() : "";
         return $cartArray;
     }
 
@@ -353,19 +358,27 @@ function getUserCart($request){
 
 function saveUserShipping($request,$userShipping){
     $shipping = \DB::table("user_shippings")->where("user_id",$request->user_id)->first();
+
     if(!$shipping){
         return \DB::table("user_shippings")->insert([
             "address_id"    => $request->address_id,
-            "label"         => $userShipping->label,
-            "amount"        => $userShipping->amount,
+            "delivery_type"    => $request->delivery_type,
+            "label"         => (isset($userShipping->label)) ? $userShipping->label : null,
+            "amount"        => (isset($userShipping->amount)) ? $userShipping->amount : null,
             "user_id"        => $request->user_id,
+            "content"        => $userShipping->content,
+            "created_at"    => date("Y-m-d H:i:s"),
+            "updated_at"    => date("Y-m-d H:i:s"),
         ]);
     }else{
         return \DB::table("user_shippings")->where("user_id",$request->user_id)
             ->update([
-                "address_id"    => $request->address_id,
-                "label"         => $userShipping->label,
-                "amount"        => $userShipping->amount,
+                "address_id"        => $request->address_id,
+                "delivery_type"    => $request->delivery_type,
+                "content"    => $userShipping->content,
+                "label"         => (isset($userShipping->label)) ? $userShipping->label : null,
+                "amount"        => (isset($userShipping->amount)) ? $userShipping->amount : null,
+                "updated_at"    => date("Y-m-d H:i:s")
             ]);
     }
 }
