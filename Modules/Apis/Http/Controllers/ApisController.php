@@ -122,20 +122,9 @@ class ApisController extends Controller
             'password'
         ]));
 
-        $code = $this->auth->createActivation($user);
-        $email = 'mtrx71@gmail.com';
-
-        $maildata = [
-            'title' => 'Hi '.$request->first_name,
-            'message_body' => '<p>PLEASE DO NOT DISCLOSE YOUR OTP CODE TO ANYONE.</p>',
-            'message_body1' => '<p><strong>'.$code.'</strong> is your one time code. This Code is to be used for verify your email.</p>'
-        ];
-
-        Mail::to($email)->send(new VerificationEmail($maildata));
+        $users = User::where("id",$user->id)->first();
 
         $this->assignCustomerRole($user);
-
-        $users = User::where("id",$user->id)->first();
 
         if($request->input('image')) {
             $file = $request->input('image');
@@ -162,8 +151,20 @@ class ApisController extends Controller
 
         event(new CustomerRegistered($user));
 
+        $code = $this->auth->createActivation($users);
+        $email = $request->email;
+
+        $maildata = [
+            'title' => 'Hi '.$request->first_name,
+            'message_body' => 'PLEASE DO NOT DISCLOSE YOUR OTP CODE TO ANYONE.',
+            'message_body1' => $code.' is your one time code. This Code is to be used for verify your email.'
+        ];
+
+        Mail::to($email)->send(new VerificationEmail($maildata));
+
         return response()->json([
             'message' => trans('user::messages.users.account_created'),
+            "user" => $users
         ],200);
     }
 
@@ -1173,6 +1174,16 @@ class ApisController extends Controller
     protected function resetCompleteRoute($user, $code)
     {
         return route('reset.complete', [$user->email, $code]);
+    }
+
+    public function activateUser(Request $request){
+        $this->auth->activate($request->user_id, $request->code);
+        $users = User::where("id",$request->user_id)->first();
+
+        return response()->json([
+            "message" => trans('account::messages.active_account'),
+            "data"  => $users
+        ]);
     }
 }
 

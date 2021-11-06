@@ -6,4 +6,5 @@ return [
     'address_saved' => 'The address has been saved.',
     'address_deleted' => 'The address has been deleted.',
     'current_password' => 'Current Password is not matched',
+    'active_account' => 'Your email is verified, you can login now',
 ];
