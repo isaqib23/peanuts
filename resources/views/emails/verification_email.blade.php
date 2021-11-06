@@ -1,13 +1,9 @@
 @component('mail::message')
     # {{ $maildata['title'] }}
 
-    Your message body.
+    {{ $maildata['message_body'] }}
+    {{ $maildata['message_body1'] }}
 
-    @component('mail::button', ['url' => $maildata['url']])
-
-        Verify
-    @endcomponent
-
-    Thanks,<br>
+    Thanks,
     {{ config('app.name') }}
 @endcomponent

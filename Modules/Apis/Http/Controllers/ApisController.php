@@ -122,11 +122,13 @@ class ApisController extends Controller
             'password'
         ]));
 
+        $code = $this->auth->createActivation($user);
         $email = 'mtrx71@gmail.com';
 
         $maildata = [
-            'title' => 'Laravel 8|7 Mail Sending Example with Markdown',
-            'url' => 'https://www.positronx.io'
+            'title' => 'Hi '.$request->first_name,
+            'message_body' => '<p>PLEASE DO NOT DISCLOSE YOUR OTP CODE TO ANYONE.</p>',
+            'message_body1' => '<p><strong>'.$code.'</strong> is your one time code. This Code is to be used for verify your email.</p>'
         ];
 
         Mail::to($email)->send(new VerificationEmail($maildata));
@@ -161,8 +163,8 @@ class ApisController extends Controller
         event(new CustomerRegistered($user));
 
         return response()->json([
-            'data' => $users,
-        ]);
+            'message' => trans('user::messages.users.account_created'),
+        ],200);
     }
 
     /**
@@ -1166,6 +1168,11 @@ class ApisController extends Controller
                 ],
             ]);
         }
+    }
+
+    protected function resetCompleteRoute($user, $code)
+    {
+        return route('reset.complete', [$user->email, $code]);
     }
 }
 

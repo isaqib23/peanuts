@@ -2,7 +2,7 @@
 
 return [
     'users' => [
-        'account_created' => 'Your account has been created.',
+        'account_created' => 'Your account has been created. Please check your email for activate',
         'no_user_found' => 'No user with that email address belongs to our system.',
         'invalid_credentials' => 'Invalid email address or password.',
         'account_not_activated' => 'Your account is not activated. Please check your email.',
