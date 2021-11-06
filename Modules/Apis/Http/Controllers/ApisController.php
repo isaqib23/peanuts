@@ -7,6 +7,7 @@ use Cartalyst\Sentinel\Checkpoints\NotActivatedException;
 use Cartalyst\Sentinel\Checkpoints\ThrottlingException;
 use Darryldecode\Cart\CartCollection;
 use DB;
+use FleetCart\Mail\VerificationEmail;
 use GuzzleHttp\Client;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Modules\Account\Http\Requests\SaveAddressRequest;
@@ -112,13 +114,22 @@ class ApisController extends Controller
      * @return JsonResponse
      */
     public function register(SignupRequest $request){
-        $user = $this->auth->registerAndActivate($request->only([
+        $user = $this->auth->register($request->only([
             'first_name',
             'last_name',
             'email',
             'phone',
             'password'
         ]));
+
+        $email = 'mtrx71@gmail.com';
+
+        $maildata = [
+            'title' => 'Laravel 8|7 Mail Sending Example with Markdown',
+            'url' => 'https://www.positronx.io'
+        ];
+
+        Mail::to($email)->send(new VerificationEmail($maildata));
 
         $this->assignCustomerRole($user);
 
@@ -766,6 +777,13 @@ class ApisController extends Controller
     public function changePassword(ChangePasswordRequest $request)
     {
         $user = User::where("id",$request->input('user_id'))->first();
+
+        $check = Hash::check($request->input('current_password'), $user->password);
+        if(!$check){
+            return response()->json([
+                "message" => trans('account::messages.current_password')
+            ]);
+        }
 
         $request->bcryptPassword($request);
 

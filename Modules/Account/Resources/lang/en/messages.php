@@ -5,4 +5,5 @@ return [
     'default_address_updated' => 'The default address has been updated.',
     'address_saved' => 'The address has been saved.',
     'address_deleted' => 'The address has been deleted.',
+    'current_password' => 'Current Password is not matched',
 ];
