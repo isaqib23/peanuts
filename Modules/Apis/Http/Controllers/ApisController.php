@@ -957,6 +957,7 @@ class ApisController extends Controller
      * @return JsonResponse
      */
     public function createPayment(Request $request){
+        getUserCart($request);
         $user = User::where("id",$request->input('user_id'))->first();
         $userAddress = Address::where("id",$request->input('address'))->first();
 
@@ -981,7 +982,7 @@ class ApisController extends Controller
         $postData->merchantAttributes = new \StdClass();
         $postData->billingAddress = new \StdClass();
         $postData->amount->currencyCode = "AED";
-        $postData->amount->value = bcmul($request->input('amount'),100);
+        $postData->amount->value = Cart::total()->amount();
         $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/order_confirmation";
         $postData->merchantAttributes->skipConfirmationPage = true;
         $postData->merchantAttributes->merchantOrderReference = $request->input('user_id')."-".$request->input('address');
