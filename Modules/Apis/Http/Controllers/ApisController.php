@@ -982,7 +982,7 @@ class ApisController extends Controller
         $postData->merchantAttributes = new \StdClass();
         $postData->billingAddress = new \StdClass();
         $postData->amount->currencyCode = "AED";
-        $postData->amount->value = Cart::total()->amount();
+        $postData->amount->value = bcmul(Cart::total()->amount(),100);
         $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/order_confirmation";
         $postData->merchantAttributes->skipConfirmationPage = true;
         $postData->merchantAttributes->merchantOrderReference = $request->input('user_id')."-".$request->input('address');
