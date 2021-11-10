@@ -8,6 +8,7 @@ use Cartalyst\Sentinel\Checkpoints\ThrottlingException;
 use Darryldecode\Cart\CartCollection;
 use DB;
 use FleetCart\Mail\VerificationEmail;
+use FleetCart\OrderTicket;
 use GuzzleHttp\Client;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\JsonResponse;
@@ -42,6 +43,7 @@ use Modules\Page\Entities\Page;
 use Modules\Payment\Facades\Gateway;
 use Modules\Product\Entities\Product;
 use Modules\Product\Entities\ProductLottery;
+use Modules\Product\Entities\ProductTranslation;
 use Modules\Slider\Entities\Slider;
 use Modules\Support\Country;
 use Modules\Support\State;
@@ -614,7 +616,6 @@ class ApisController extends Controller
             ->orders()
             ->get();
         $response = [];
-
         foreach ($orders as $key => $order){
             if(count($order->products->pluck('product_id')->toArray()) > 0) {
                 $products = (new Product)->getOrderLotteryProducts($order->products->pluck('product_id')->toArray());
@@ -632,10 +633,14 @@ class ApisController extends Controller
                             unset($products[$proKey]);
                         }else {
                             $products[$proKey]['lottery'] = $lottery;
-                            $products[$proKey]['sold_items'] = (string)getSoldLottery($value["id"]);
+                            $products[$proKey]['lottery']->name = ProductTranslation::where(["product_id" => $lottery->product_id])->first()->name;
+                            $products[$proKey]['tickets'] = getSoldTickets($value["id"],$order->id);
                             $products[$proKey]['is_added_to_wishlist'] = isAddedToWishlist($request->input('user_id'), $value["id"]);
-                            $products[$proKey]['thumbnail_image'] = (!isset($value["base_image"]["path"])) ? $value["base_image"] : NULL;
+                            $products[$proKey]['thumbnail_image'] = (count($value["base_image"]) > 0) ? $value["base_image"] : NULL;
                             $products[$proKey]['suppliers'] = (!isset($value["supplier"]["id"])) ? $value["supplier"] : NULL;
+
+                            $products[$proKey]['sold_tickets'] = OrderTicket::where(["product_id" => $value["id"], "status" => "sold"])->count();
+                            $products[$proKey]['total_tickets'] = OrderTicket::where(["product_id" => $value["id"]])->count();
                         }
                     }
                     $products = array_values($products);
@@ -954,9 +959,10 @@ class ApisController extends Controller
 
     /**
      * @param Request $request
+     * @param OrderService $orderService
      * @return JsonResponse
      */
-    public function createPayment(Request $request){
+    public function createPayment(Request $request, OrderService $orderService){
         getUserCart($request);
         $user = User::where("id",$request->input('user_id'))->first();
         $userAddress = Address::where("id",$request->input('address'))->first();
@@ -976,6 +982,26 @@ class ApisController extends Controller
         $access_token = $output->access_token;
         curl_close ($ch);
 
+        $request->merge([
+            "customer_email"        => $user->email,
+            "customer_phone"        => $user->phone,
+            "billing"               => $userAddress->toArray(),
+            "billingAddressId"      => $userAddress->id,
+            "shippingAddressId"     => $userAddress->id,
+            "newBillingAddress"     => false,
+            "newShippingAddress"    => false,
+            "payment_method"        => "foloosi"
+        ]);
+        $order = $orderService->create($request);
+
+        $airway_bill = generateAirWayBill($request->input('user_id'), $request->input('address'));
+        $order->update(['airway_bill' => $airway_bill]);
+
+        DB::table("user_shippings")->where([
+            "user_id"       => $request->input('user_id'),
+            "address_id"    => $request->input("address")
+            ])->whereNull("order_id")->update(["order_id" => $order->id]);
+
         $postData = new \StdClass();
         $postData->action = "PURCHASE";
         $postData->amount = new \StdClass();
@@ -984,8 +1010,8 @@ class ApisController extends Controller
         $postData->amount->currencyCode = "AED";
         $postData->amount->value = bcmul(Cart::total()->amount(),100);
         $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/order_confirmation";
-        $postData->merchantAttributes->skipConfirmationPage = true;
-        $postData->merchantAttributes->merchantOrderReference = $request->input('user_id')."-".$request->input('address');
+        $postData->merchantAttributes->skipConfirmationPage = false;
+        $postData->merchantAttributes->merchantOrderReference = $request->input('user_id')."-".$order->id;
         $postData->emailAddress = $user->email;
         $postData->billingAddress->firstName = $userAddress->first_name;
         $postData->billingAddress->lastName = $userAddress->last_name;
@@ -1014,6 +1040,7 @@ class ApisController extends Controller
 
         curl_close ($ch);
 
+        DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
         return response()->json([
             'data' => [
                 "order_reference"       => $order_reference,
@@ -1055,41 +1082,16 @@ class ApisController extends Controller
 
         $callBackData = $output->merchantAttributes->merchantOrderReference;
         $user_id = strtok($callBackData, '-');
-        $address_id = substr($callBackData, strpos($callBackData, "-") + 1);
-
-        $user = User::where("id",$user_id)->first();
-        $userAddress = Address::where("id",$address_id)->first();
-        $request->merge([
-            "user_id"   => $user_id,
-            "transaction_id"   => $orderRef,
-            "customer_email"   => $user->email,
-            "customer_phone"   => $user->phone,
-            "billing"   => $userAddress->toArray(),
-            "billingAddressId"   => $address_id,
-            "shippingAddressId"   => $address_id,
-            "newBillingAddress"   => false,
-            "newShippingAddress"   => false,
-            "payment_method"   => "foloosi",
-        ]);
-
-        $order = $orderService->create($request);
-
-        $orderId = $order->id;
-
-        event(new OrderPlaced($order));
+        $orderId = substr($callBackData, strpos($callBackData, "-") + 1);
 
         updateProductLottery($orderId);
+        updateProductTickets($orderId);
 
         $order = Order::findOrFail($orderId);
 
-        $order->storeFoloosiTransaction($request->input('transaction_id'));
+        $order->storeFoloosiTransaction($request->input('ref'));
 
         $order->update(['status' => "completed"]);
-
-        $airway_bill = generateAirWayBill($user_id, $address_id);
-        $order->update(['airway_bill' => $airway_bill]);
-
-        DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
 
         curl_close ($ch);
 

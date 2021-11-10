@@ -110,7 +110,22 @@ trait HasCrudActions
      */
     public function show($id)
     {
+        //dd($this->getRoutePrefix());
         $entity = $this->getEntity($id);
+        if($this->getRoutePrefix() == "admin.orders"){
+            $shipping = \DB::table("user_shippings")->where(["order_id" => $entity->id])->first();
+            $orderType = "";
+            if($shipping){
+                if($shipping->delivery_type == 1){
+                    $orderType = "Donate the product";
+                }elseif($shipping->delivery_type == 1){
+                    $orderType = "Self Pikup";
+                }else{
+                    $orderType = "Delivery on Selected Address";
+                }
+            }
+            $entity->order_type = $orderType;
+        }
 
         if (request()->wantsJson()) {
             return $entity;
@@ -188,7 +203,7 @@ trait HasCrudActions
         $allowedRoutes = ["admin.products.update","admin.products.store"];
         if(in_array($this->getRequest('update')->route()->getName(), $allowedRoutes)){
             updateLotteryProduct($entity,$this->getRequest('store')->all(), 'update');
-            updateWinner($entity,$this->getRequest('store')->all());
+            //updateWinner($entity,$this->getRequest('store')->all());
         }
 
         if (method_exists($this, 'redirectTo')) {

@@ -28,8 +28,10 @@ function updateLotteryProduct($product, $data, $method){
                 'to_date'           => $data["to_date"],
                 'product_id'        => $data["product_id"]
             ]);
+            generateTicketNumbmers($product,$data["max_ticket"],"update");
         } else {
             (new \Modules\Product\Entities\ProductLottery())->create($data);
+            generateTicketNumbmers($product,$data["max_ticket"]);
         }
     }else{
         (new \Modules\Product\Entities\ProductLottery())->where("product_id",$product->id)->delete();
@@ -384,7 +386,11 @@ function saveUserShipping($request,$userShipping){
 }
 
 function getUserShipping($request){
-    return \DB::table("user_shippings")->where("user_id",$request->user_id)->first();
+    $shipping = \DB::table("user_shippings")->where("user_id",$request->user_id)->first();
+    if($shipping) {
+        $shipping->name = $shipping->label;
+    }
+    return $shipping;
 }
 
 function getdirectCart($request){
@@ -427,3 +433,59 @@ function getdirectCart($request){
 
     return [];
 }
+
+function generateTicketNumbmers($product,$maxTickets,$type="insert"){
+    $data = [];
+    if($type == "update"){
+        $getTicket = \FleetCart\OrderTicket::where(["product_id" => $product["id"]])->first();
+        if(!$getTicket){
+            createTickets($product,$maxTickets);
+        }else {
+            $ids = \FleetCart\OrderTicket::all()->take($maxTickets)->pluck('id')->toArray();
+            $diff = $maxTickets - count($ids);
+            if($diff > 0){
+                createTickets($product,$diff);
+            }else {
+                \FleetCart\OrderTicket::whereNotIn("id", $ids)->where("product_id", $product["id"])->delete();
+            }
+        }
+    }else {
+        createTickets($product,$maxTickets);
+    }
+}
+
+function updateProductTickets($orderId){
+    $orderProducts = \Modules\Order\Entities\OrderProduct::where("order_id",$orderId)->get();;
+    foreach ($orderProducts as $key => $value){
+        $product = Product::where("id",$value->product_id)->first();
+
+        if($product && $product->product_type == 1) {
+            $getProductTickets = \FleetCart\OrderTicket::where("status","pending")->take($value->qty);
+            $ticketIds = $getProductTickets->pluck("id")->toArray();
+            \FleetCart\OrderTicket::whereIn("id",$ticketIds)->update(["status" => "sold","order_id" => $orderId]);
+        }
+    }
+}
+
+function getSoldTickets($productId, $orderId){
+    return \FleetCart\OrderTicket::where([
+        "product_id"    => $productId,
+        "order_id"      => $orderId,
+        "status"        => "sold"
+    ])->select("ticket_number","created_at")->get()->toArray();
+}
+
+ function createTickets ($product,$maxTickets) {
+     for ($i = 1; $i <= $maxTickets; $i++) {
+         $ticket_number = sprintf("%05d", $product["id"]) . '-' . sprintf("%05d", $i);
+         $data[] = [
+             "product_id" => $product["id"],
+             "ticket_number" => $ticket_number,
+             "is_valid" => "yes",
+             "status" => "pending",
+             "created_at" => date("Y-m-d H:i:s"),
+             "updated_at" => date("Y-m-d H:i:s")
+         ];
+     }
+     \FleetCart\OrderTicket::insert($data);
+ }

@@ -67,6 +67,11 @@
                                     <td>{{ trans('order::orders.currency_rate') }}</td>
                                     <td>{{ $order->currency_rate }}</td>
                                 </tr>
+
+                                <tr>
+                                    <td>{{ trans('order::orders.order_type') }}</td>
+                                    <td>{{ $order->order_type }}</td>
+                                </tr>
                             @endif
 
                             @if ($order->note)

@@ -21,6 +21,8 @@ class UserShippingsTable extends Migration
             $table->string('label')->nullable();
             $table->string('amount')->nullable();
             $table->string('content')->nullable();
+            $table->string('order_id')->nullable();
+            $table->string('cart_id')->nullable();
 
 
             $table->timestamps();

@@ -18,6 +18,7 @@ return [
     'payment_method' => 'Payment Method',
     'currency' => 'Currency',
     'currency_rate' => 'Currency Rate',
+    'order_type' => 'Order Type',
     'order_note' => 'Order Note',
     'account_information' => 'Account Information',
     'customer_name' => 'Customer Name',
