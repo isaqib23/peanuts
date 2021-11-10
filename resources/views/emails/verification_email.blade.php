@@ -1,8 +1,11 @@
 @component('mail::message')
-    # {{ $maildata['title'] }}
+    <h2>{{ $maildata['title'] }}</h2>
 
-    {{ $maildata['message_body'] }}
-    {{ $maildata['message_body1'] }}
+    <h3>{{ $maildata['message_body'] }}</h3>
+
+    @component('mail::button', ['url' => $maildata['link']])
+        Verify Email
+    @endcomponent
 
     Thanks,
     {{ config('app.name') }}

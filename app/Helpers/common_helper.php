@@ -317,7 +317,7 @@ function getDHLDeliveryRate($user, $address){
     ];
 }
 
-function getUserCart($request){
+function getUserCart($request, $coupon=false){
     Cart::clear();
     $userCart = DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
     if(!is_null($userCart)){
@@ -335,6 +335,9 @@ function getUserCart($request){
             Cart::removeShippingMethod();
         }
 
+        if($coupon) {
+            Cart::applyCoupon($coupon);
+        }
         $cartArray = Cart::toArray();
         foreach ($cartArray as $key => $value){
             if($key == "items") {
@@ -489,3 +492,34 @@ function getSoldTickets($productId, $orderId){
      }
      \FleetCart\OrderTicket::insert($data);
  }
+
+
+function getSoldTicketsCount($productId){
+    return \FleetCart\OrderTicket::where([
+        "product_id"    => $productId,
+        "status"        => "sold"
+    ])->count();
+}
+
+function getTotalTicketsCount($productId){
+    return \FleetCart\OrderTicket::where([
+        "product_id"    => $productId
+    ])->count();
+}
+
+function getRemainingTicketsCount($productId){
+    return \FleetCart\OrderTicket::where([
+        "product_id"    => $productId,
+        "status"        => "pending"
+    ])->count();
+}
+
+function checkLotteryExpiry($product,$lottery){
+    if($product->product_type == 1){
+        $otherDate = \Carbon\Carbon::parse($lottery->to_date);
+        $nowDate = \Carbon\Carbon::now();
+        return $nowDate->gt($otherDate);
+    }
+
+    return false;
+}

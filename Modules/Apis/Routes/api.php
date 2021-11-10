@@ -35,3 +35,4 @@ Route::post('peanut_products', 'ApisController@peanutProducts')->name('peanutPro
 Route::post('order_payment', 'ApisController@createPayment')->name('order_payment');
 Route::post('get_delivery_rates', 'ApisController@get_delivery_rates')->name('get_delivery_rates');
 Route::post('activate_user', 'ApisController@activateUser')->name('activateUser');
+Route::post('apply_coupon', 'ApisController@apply_coupon')->name('apply_coupon');

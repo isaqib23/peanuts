@@ -34,6 +34,7 @@ use Modules\Checkout\Events\OrderPlaced;
 use Modules\Checkout\Services\OrderService;
 use Modules\Coupon\Checkers\MaximumSpend;
 use Modules\Coupon\Checkers\MinimumSpend;
+use Modules\Coupon\Entities\Coupon;
 use Modules\Coupon\Exceptions\MaximumSpendException;
 use Modules\Coupon\Exceptions\MinimumSpendException;
 use Modules\Media\Entities\File;
@@ -154,12 +155,12 @@ class ApisController extends Controller
         event(new CustomerRegistered($user));
 
         $code = $this->auth->createActivation($users);
-        $email = $request->email;
+        $email = "isaqib23@gmail.com";
 
         $maildata = [
             'title' => 'Hi '.$request->first_name,
-            'message_body' => 'PLEASE DO NOT DISCLOSE YOUR OTP CODE TO ANYONE.',
-            'message_body1' => $code.' is your one time code. This Code is to be used for verify your email.'
+            'message_body' => 'Please click on below button to verify your email address on Pnutso',
+            'link' => url('/email_confirmation?code='.$user->id.'_'.$code),
         ];
 
         Mail::to($email)->send(new VerificationEmail($maildata));
@@ -205,6 +206,9 @@ class ApisController extends Controller
                 $products[$key]->suppliers = (!is_null($value->supplier->id)) ? $value->supplier : NULL;
                 $products[$key]->sold_tickets = OrderTicket::where(["product_id" => $value->id, "status" => "sold"])->count();
                 $products[$key]->total_tickets = OrderTicket::where(["product_id" => $value->id])->count();
+                $products[$key]->is_out_of_stock = (getRemainingTicketsCount($value->id) > 0) ? false : true;
+                $products->is_expired = checkLotteryExpiry($value,$value->lottery);
+
                 if($products[$key]->lottery){
                     array_push($response,$products[$key]);
                 }
@@ -232,6 +236,9 @@ class ApisController extends Controller
 
         $product->sold_tickets = OrderTicket::where(["product_id" => $request->input('id'), "status" => "sold"])->count();
         $product->total_tickets = OrderTicket::where(["product_id" => $request->input('id')])->count();
+        $product->is_out_of_stock = (getRemainingTicketsCount($request->input('id')) > 0) ? false : true;
+        $product->is_expired = checkLotteryExpiry($product,$product->lottery);
+
         $getCart = DB::table("user_cart")->where([
             "user_id"       => $request->input('user_id'),
             "product_id"    => $request->input('id')
@@ -263,17 +270,22 @@ class ApisController extends Controller
             ],422);
         }*/
 
-        if($getLottery && ($request->qty > (int)$getLottery->max_ticket_user)){
+        if($request->qty > (int)$getLottery->max_ticket_user){
             return response()->json([
                 'message' => "You can buy ".(int)$getLottery->max_ticket_user." items at once for this product",
             ],422);
         }
 
         if($getLottery){
-            $remainingTickets = (int)$getLottery->max_ticket - (int)$soldTickets;
+            $remainingTickets = getRemainingTicketsCount($request->product_id);
+            if($remainingTickets <= 0) {
+                return response()->json([
+                    'message' => "All tickets are already sold",
+                ],422);
+            }
             if($request->qty > $remainingTickets) {
                 return response()->json([
-                    'message' => "You can buy ".(int)$remainingTickets." items for this product",
+                    'message' => "You can buy ".$remainingTickets." items for this product",
                 ],422);
             }
         }
@@ -604,6 +616,9 @@ class ApisController extends Controller
             $data[$key]->suppliers = (!is_null($value->supplier->id)) ? $value->supplier : NULL;
             $data[$key]->sold_tickets = OrderTicket::where(["product_id" => $value->id, "status" => "sold"])->count();
             $data[$key]->total_tickets = OrderTicket::where(["product_id" => $value->id])->count();
+            $data[$key]->is_out_of_stock = (getRemainingTicketsCount($value->id) > 0) ? false : true;
+            $data->is_expired = checkLotteryExpiry($value,$value->lottery);
+
             if($value->product_type == $status){
                 array_push($response,$value);
             }
@@ -646,6 +661,7 @@ class ApisController extends Controller
 
                             $products[$proKey]['sold_tickets'] = OrderTicket::where(["product_id" => $value["id"], "status" => "sold"])->count();
                             $products[$proKey]['total_tickets'] = OrderTicket::where(["product_id" => $value["id"]])->count();
+                            $products[$key]->is_out_of_stock = (getRemainingTicketsCount($value["id"]) > 0) ? false : true;
                         }
                     }
                     $products = array_values($products);
@@ -1014,7 +1030,7 @@ class ApisController extends Controller
         $postData->billingAddress = new \StdClass();
         $postData->amount->currencyCode = "AED";
         $postData->amount->value = bcmul(Cart::total()->amount(),100);
-        $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/order_confirmation";
+        $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/home";
         $postData->merchantAttributes->skipConfirmationPage = false;
         $postData->merchantAttributes->merchantOrderReference = $request->input('user_id')."-".$order->id;
         $postData->emailAddress = $user->email;
@@ -1054,7 +1070,7 @@ class ApisController extends Controller
         ]);
     }
 
-    public function order_confirmation(Request $request, OrderService $orderService){
+    public function order_confirmation1(Request $request, OrderService $orderService){
         $orderRef = $request->input('ref');
 
         $apikey = env('NETWORK_API_KEY');
@@ -1191,6 +1207,46 @@ class ApisController extends Controller
         return response()->json([
             "message" => trans('account::messages.active_account'),
             "data"  => $users
+        ]);
+    }
+
+    public function order_confirmation(Request $request, OrderService $orderService){
+        $json = file_get_contents("php://input");
+        $output = json_decode($json);
+
+        if ($output->eventName == "PURCHASED") {
+            $callBackData = $output->merchantAttributes->merchantOrderReference;
+            $user_id = strtok($callBackData, '-');
+            $orderId = substr($callBackData, strpos($callBackData, "-") + 1);
+
+            updateProductLottery($orderId);
+            updateProductTickets($orderId);
+
+            $order = Order::findOrFail($orderId);
+
+            $order->storeFoloosiTransaction($request->input('ref'));
+
+            $order->update(['status' => "completed"]);
+        }
+    }
+
+    public function apply_coupon(Request $request){
+        $coupon = Coupon::where("code",$request->code)->first();
+
+        return response()->json([
+            'data' => getUserCart($request,$coupon)
+        ]);
+    }
+
+    public function email_confirmation(Request $request){
+        $code = $request->code;
+        $user_id = strtok($code, '_');
+        $confirmationCode = substr($code, strpos($code, "_") + 1);
+
+        $this->auth->activate($user_id, $confirmationCode);
+
+        return response()->json([
+            "message" => trans('account::messages.active_account')
         ]);
     }
 }

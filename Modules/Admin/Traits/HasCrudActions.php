@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Traits;
 
+use FleetCart\OrderTicket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Modules\Media\Entities\File;
@@ -113,6 +114,8 @@ trait HasCrudActions
         //dd($this->getRoutePrefix());
         $entity = $this->getEntity($id);
         if($this->getRoutePrefix() == "admin.orders"){
+            $entity->tickets = OrderTicket::where(["order_id" => $entity->id])->get()->pluck("ticket_number");
+
             $shipping = \DB::table("user_shippings")->where(["order_id" => $entity->id])->first();
             $orderType = "";
             if($shipping){

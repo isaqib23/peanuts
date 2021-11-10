@@ -11,4 +11,5 @@
 |
 */
 
-Route::get('/order_confirmation', 'ApisController@order_confirmation');
+Route::post('/order_confirmation', 'ApisController@order_confirmation');
+Route::get('email_confirmation', 'ApisController@email_confirmation')->name('email_confirmation');
