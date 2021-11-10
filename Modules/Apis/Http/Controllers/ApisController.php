@@ -203,6 +203,8 @@ class ApisController extends Controller
                 $products[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $value->id);
                 $products[$key]->thumbnail_image = (!is_null($value->base_image->path)) ? $value->base_image : NULL;
                 $products[$key]->suppliers = (!is_null($value->supplier->id)) ? $value->supplier : NULL;
+                $products[$key]->sold_tickets = OrderTicket::where(["product_id" => $value->id, "status" => "sold"])->count();
+                $products[$key]->total_tickets = OrderTicket::where(["product_id" => $value->id])->count();
                 if($products[$key]->lottery){
                     array_push($response,$products[$key]);
                 }
@@ -228,6 +230,8 @@ class ApisController extends Controller
             $product->lottery = $lottery;
         }
 
+        $product->sold_tickets = OrderTicket::where(["product_id" => $request->input('id'), "status" => "sold"])->count();
+        $product->total_tickets = OrderTicket::where(["product_id" => $request->input('id')])->count();
         $getCart = DB::table("user_cart")->where([
             "user_id"       => $request->input('user_id'),
             "product_id"    => $request->input('id')
@@ -598,7 +602,8 @@ class ApisController extends Controller
             $data[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $value->id);
             $data[$key]->thumbnail_image = (!is_null($value->base_image->path)) ? $value->base_image : NULL;
             $data[$key]->suppliers = (!is_null($value->supplier->id)) ? $value->supplier : NULL;
-
+            $data[$key]->sold_tickets = OrderTicket::where(["product_id" => $value->id, "status" => "sold"])->count();
+            $data[$key]->total_tickets = OrderTicket::where(["product_id" => $value->id])->count();
             if($value->product_type == $status){
                 array_push($response,$value);
             }
