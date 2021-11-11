@@ -661,7 +661,7 @@ class ApisController extends Controller
 
                             $products[$proKey]['sold_tickets'] = OrderTicket::where(["product_id" => $value["id"], "status" => "sold"])->count();
                             $products[$proKey]['total_tickets'] = OrderTicket::where(["product_id" => $value["id"]])->count();
-                            $products[$key]->is_out_of_stock = (getRemainingTicketsCount($value["id"]) > 0) ? false : true;
+                            $products[$key]['is_out_of_stock'] = (getRemainingTicketsCount($value["id"]) > 0) ? false : true;
                         }
                     }
                     $products = array_values($products);
