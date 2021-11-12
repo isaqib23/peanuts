@@ -156,7 +156,7 @@ class ApisController extends Controller
         event(new CustomerRegistered($user));
 
         $code = $this->auth->createActivation($users);
-        $email = "isaqib23@gmail.com";
+        $email = $request->email;
 
         $maildata = [
             'title' => 'Hi '.$request->first_name,
