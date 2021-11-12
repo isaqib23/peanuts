@@ -208,7 +208,7 @@ class ApisController extends Controller
                 $products[$key]->sold_tickets = OrderTicket::where(["product_id" => $value->id, "status" => "sold"])->count();
                 $products[$key]->total_tickets = OrderTicket::where(["product_id" => $value->id])->count();
                 $products[$key]->is_out_of_stock = (getRemainingTicketsCount($value->id) > 0) ? false : true;
-                $products->is_expired = checkLotteryExpiry($value,$value->lottery);
+                $products[$key]->is_expired = checkLotteryExpiry($value,$value->lottery);
 
                 if($products[$key]->lottery){
                     array_push($response,$products[$key]);
@@ -618,7 +618,7 @@ class ApisController extends Controller
             $data[$key]->sold_tickets = OrderTicket::where(["product_id" => $value->id, "status" => "sold"])->count();
             $data[$key]->total_tickets = OrderTicket::where(["product_id" => $value->id])->count();
             $data[$key]->is_out_of_stock = (getRemainingTicketsCount($value->id) > 0) ? false : true;
-            $data->is_expired = checkLotteryExpiry($value,$value->lottery);
+            $data[$key]->is_expired = checkLotteryExpiry($value,$value->lottery);
 
             if($value->product_type == $status){
                 array_push($response,$value);

@@ -15,7 +15,8 @@ class UserTabs extends Tabs
             ->active()
             ->add($this->account())
             ->add($this->permissions())
-            ->add($this->newPassword());
+            ->add($this->newPassword())
+            ->add($this->userPurchase());
     }
 
     private function account()
@@ -63,6 +64,22 @@ class UserTabs extends Tabs
             $tab->weight(30);
             $tab->fields(['password', 'password_confirmation']);
             $tab->view('user::admin.users.tabs.new_password');
+        });
+    }
+
+    private function userPurchase()
+    {
+        if (! request()->routeIs('admin.users.edit')) {
+            return;
+        }
+
+        return tap(new Tab('purchases', trans('user::users.tabs.purchases')), function (Tab $tab) {
+            $tab->weight(30);
+            $tab->view(function ($data) {
+                return view('user::admin.users.tabs.purchases', [
+                    'purchase' => getUserPurchase($data['user']->id)
+                ]);
+            });
         });
     }
 }

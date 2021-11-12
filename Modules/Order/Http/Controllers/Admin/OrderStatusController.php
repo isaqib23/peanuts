@@ -19,6 +19,9 @@ class OrderStatusController
         $this->adjustStock($order);
 
         $order->update(['status' => request('status')]);
+        if(request('status') == "canceled" || request('status') == "pending") {
+            \DB::table("order_tickets")->where("order_id", $order->id)->update(['status' => request('status')]);
+        }
 
         $message = trans('order::messages.status_updated');
 

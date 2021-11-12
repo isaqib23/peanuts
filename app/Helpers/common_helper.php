@@ -341,6 +341,8 @@ function getUserCart($request){
         if($getUserCoupon) {
             $coupon = Coupon::where("code",$getUserCoupon->coupon_code)->first();
             Cart::applyCoupon($coupon);
+        }else{
+            Cart::removeCoupon();
         }
 
         $cartArray = Cart::toArray();
@@ -527,4 +529,14 @@ function checkLotteryExpiry($product,$lottery){
     }
 
     return false;
+}
+
+function getUserPurchase($user_id){
+    return \DB::select('
+        SELECT OT.ticket_number, OT.is_valid, OT.status, PT.name
+        FROM order_tickets AS OT
+        JOIN orders AS O ON OT.order_id = O.id
+        JOIN product_translations AS PT ON PT.product_id = OT.product_id
+        WHERE O.customer_id =
+    '.$user_id);
 }

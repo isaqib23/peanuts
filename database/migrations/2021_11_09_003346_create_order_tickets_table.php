@@ -19,7 +19,7 @@ class CreateOrderTicketsTable extends Migration
             $table->string("ticket_number");
             $table->string("order_id")->nullable();
             $table->enum('is_valid',["yes","no"])->default("yes");
-            $table->enum("status",["pending","sold"])->default("pending");
+            $table->enum("status",["pending","sold","won","expired","canceled"])->default("pending");
             $table->timestamps();
         });
     }

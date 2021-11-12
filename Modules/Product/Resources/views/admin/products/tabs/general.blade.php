@@ -1,3 +1,7 @@
+@if($product->product_type == 1)
+    <p style="margin-bottom: 20px"><strong>Remaining Tickets: </strong>{{getRemainingTicketsCount($product->id)}}</p>
+@endif
+
 {{ Form::text('name', trans('product::attributes.name'), $errors, $product, ['labelCol' => 2, 'required' => true]) }}
 {{ Form::wysiwyg('description', trans('product::attributes.description'), $errors, $product, ['labelCol' => 2, 'required' => true]) }}
 

@@ -18,6 +18,7 @@ return [
         'account' => 'Account',
         'permissions' => 'Permissions',
         'new_password' => 'New Password',
+        'purchases' => 'Purchases',
     ],
     'form' => [
         'activated' => 'Activated',
