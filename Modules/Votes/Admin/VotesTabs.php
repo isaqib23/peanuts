@@ -19,10 +19,11 @@ class VotesTabs extends Tabs
         return tap(new Tab('general', trans('votes::votes.tabs.general')), function (Tab $tab) {
             $tab->active();
             $tab->weight(5);
-            $tab->fields(['name']);
+            $tab->fields(['status']);
             $tab->view('votes::admin.votes.tabs.general',[
                 'product_1'     => $this->link_products(),
                 'product_2'     => $this->link_products(),
+                'status'        => ["Active","Disable"],
             ]);
         });
     }

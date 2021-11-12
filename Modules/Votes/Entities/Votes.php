@@ -13,6 +13,7 @@ class Votes extends Model
         'product_1',
         'product_2',
         'count_1',
+        'status',
         'count_2'
     ];
 

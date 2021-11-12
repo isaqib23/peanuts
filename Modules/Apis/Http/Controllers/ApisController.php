@@ -156,7 +156,7 @@ class ApisController extends Controller
         event(new CustomerRegistered($user));
 
         $code = $this->auth->createActivation($users);
-        $email = $request->email;
+        $email = "isaqib23@gmail.com";
 
         $maildata = [
             'title' => 'Hi '.$request->first_name,
@@ -734,7 +734,7 @@ class ApisController extends Controller
      * @return JsonResponse
      */
     public function votes(Request $request){
-        $votes = Votes::all();
+        $votes = Votes::where("status","0")->get();
         foreach ($votes as $key => $value){
             $product_1 = Product::findById($value->product_1);
             $product_1->vote_count = is_null($value->count_1) ? 0 : (int) $value->count_1;
@@ -1063,6 +1063,8 @@ class ApisController extends Controller
         curl_close ($ch);
 
         DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
+        DB::table("users_coupons")->where("user_id", $request->input('user_id'))->delete();
+        DB::table("user_shippings")->where("user_id", $request->input('user_id'))->delete();
         return response()->json([
             'data' => [
                 "order_reference"       => $order_reference,
