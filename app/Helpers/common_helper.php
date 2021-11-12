@@ -2,6 +2,7 @@
 
 use Modules\Address\Entities\Address;
 use Modules\Cart\Facades\Cart;
+use Modules\Coupon\Entities\Coupon;
 use Modules\Product\Entities\Product;
 use Modules\User\Entities\User;
 
@@ -317,7 +318,7 @@ function getDHLDeliveryRate($user, $address){
     ];
 }
 
-function getUserCart($request, $coupon=false){
+function getUserCart($request){
     Cart::clear();
     $userCart = DB::table("user_cart")->where("user_id", $request->input('user_id'))->get();
     if(!is_null($userCart)){
@@ -335,9 +336,13 @@ function getUserCart($request, $coupon=false){
             Cart::removeShippingMethod();
         }
 
-        if($coupon) {
+        // check user coupon
+        $getUserCoupon = \DB::table('users_coupons')->where("user_id",$request->input("user_id"))->first();
+        if($getUserCoupon) {
+            $coupon = Coupon::where("code",$getUserCoupon->coupon_code)->first();
             Cart::applyCoupon($coupon);
         }
+
         $cartArray = Cart::toArray();
         foreach ($cartArray as $key => $value){
             if($key == "items") {

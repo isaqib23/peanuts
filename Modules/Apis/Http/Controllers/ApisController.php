@@ -9,6 +9,7 @@ use Darryldecode\Cart\CartCollection;
 use DB;
 use FleetCart\Mail\VerificationEmail;
 use FleetCart\OrderTicket;
+use FleetCart\UserCoupon;
 use GuzzleHttp\Client;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\JsonResponse;
@@ -1232,10 +1233,21 @@ class ApisController extends Controller
 
     public function apply_coupon(Request $request){
         $coupon = Coupon::where("code",$request->code)->first();
+        if($coupon) {
+            $userCoupon = UserCoupon::firstOrNew([
+                'user_id' => $request->input("user_id"),
+                'coupon_code' => $request->input("code")
+            ]);
+            $userCoupon->save();
 
-        return response()->json([
-            'data' => getUserCart($request,$coupon)
-        ]);
+            return response()->json([
+                'data' => getUserCart($request)
+            ]);
+        }else{
+            return response()->json([
+                'data' => false
+            ]);
+        }
     }
 
     public function email_confirmation(Request $request){
@@ -1248,6 +1260,23 @@ class ApisController extends Controller
         return response()->json([
             "message" => trans('account::messages.active_account')
         ]);
+    }
+
+    public function remove_coupon(Request $request){
+        $coupon = Coupon::where("code",$request->code)->first();
+        if($coupon) {
+            UserCoupon::where([
+                'user_id' => $request->input("user_id")
+            ])->delete();
+
+            return response()->json([
+                'data' => getUserCart($request)
+            ]);
+        }else{
+            return response()->json([
+                'data' => false
+            ]);
+        }
     }
 }
 
