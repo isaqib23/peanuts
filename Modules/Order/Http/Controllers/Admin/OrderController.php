@@ -36,4 +36,8 @@ class OrderController
      * @var string
      */
     protected $viewPath = 'order::admin.orders';
+
+    public function search(){
+        return view('order::admin.orders.search');
+    }
 }

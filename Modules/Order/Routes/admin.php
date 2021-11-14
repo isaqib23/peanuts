@@ -31,3 +31,9 @@ Route::get('orders/{order}/print', [
     'uses' => 'OrderPrintController@show',
     'middleware' => 'can:admin.orders.show',
 ]);
+
+Route::get('orders/search', [
+    'as' => 'admin.orders.search',
+    'uses' => 'OrderController@search',
+    'middleware' => 'can:admin.orders.index',
+]);

@@ -540,3 +540,23 @@ function getUserPurchase($user_id){
         WHERE O.customer_id =
     '.$user_id);
 }
+
+function getVoteResult($value){
+    $product_1 = Product::findById($value->product_1);
+    $product_1->vote_count = is_null($value->count_1) ? 0 : (int) $value->count_1;
+
+    $product_2 = Product::findById($value->product_2);
+    $product_2->vote_count = is_null($value->count_2) ? 0 : (int) $value->count_2;
+
+    $totalVotes = $product_1->vote_count + $product_2->vote_count;
+    if($totalVotes > 0) {
+        $product_2->vote_percentage = (string) ($product_2->vote_count / $totalVotes) * 100;
+        $product_1->vote_percentage = (string) ($product_1->vote_count / $totalVotes) * 100;
+    }else{
+        $product_2->vote_percentage = "0";
+        $product_1->vote_percentage = "0";
+    }
+
+    return "Product A(<strong>".$product_1->vote_percentage."%</strong>)"." vs ".
+           "Product B(<strong>".$product_2->vote_percentage."%</strong>)";
+}

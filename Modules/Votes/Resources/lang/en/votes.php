@@ -6,6 +6,7 @@ return [
     'table' => [
         'product_1' => 'Product A',
         'product_2' => 'Product B',
+        'vote_result' => 'Result'
     ],
     'tabs' => [
         'group' => [

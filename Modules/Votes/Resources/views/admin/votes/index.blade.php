@@ -19,7 +19,7 @@
                 <th>{{ trans('admin::admin.table.id') }}</th>
                 <th>{{ trans('votes::votes.table.product_1') }}</th>
                 <th>{{ trans('votes::votes.table.product_2') }}</th>
-                <th data-sort>{{ trans('admin::admin.table.created') }}</th>
+                <th>{{ trans('votes::votes.table.vote_result') }}</th>
             </tr>
         @endslot
     @endcomponent

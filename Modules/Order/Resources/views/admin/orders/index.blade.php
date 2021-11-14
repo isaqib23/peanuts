@@ -2,11 +2,11 @@
 
 @component('admin::components.page.header')
     @slot('title', trans('order::orders.orders'))
-
     <li class="active">{{ trans('order::orders.orders') }}</li>
 @endcomponent
 
 @section('content')
+    <a href="{{ route('admin.orders.search') }}" class="btn btn-primary" style="position: absolute; top:55px; left:100px">Advance Search</a>
     <div class="box box-primary">
         <div class="box-body index-table" id="orders-table">
             @component('admin::components.table')

@@ -81,6 +81,8 @@ class AdminTable implements Responsable
                 return (Product::findById($entity->product_1)) ? Product::findById($entity->product_1)->name : "-";
             })->editColumn('product_2', function ($entity) {
                 return (Product::findById($entity->product_2)) ? Product::findById($entity->product_2)->name : "-";
+            })->editColumn('created', function ($entity) {
+                return getVoteResult($entity);
             });
         }
 
