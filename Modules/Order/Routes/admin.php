@@ -34,6 +34,6 @@ Route::get('orders/{order}/print', [
 
 Route::get('orders/search', [
     'as' => 'admin.orders.search',
-    'uses' => 'OrderController@search',
+    'uses' => 'OrderEmailController@search',
     'middleware' => 'can:admin.orders.index',
 ]);

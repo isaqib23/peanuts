@@ -37,3 +37,4 @@ Route::post('get_delivery_rates', 'ApisController@get_delivery_rates')->name('ge
 Route::post('activate_user', 'ApisController@activateUser')->name('activateUser');
 Route::post('apply_coupon', 'ApisController@apply_coupon')->name('apply_coupon');
 Route::post('remove_coupon', 'ApisController@remove_coupon')->name('remove_coupon');
+Route::post('get_static_pages', 'ApisController@getStaticPages')->name('getStaticPages');

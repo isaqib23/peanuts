@@ -18,6 +18,8 @@ class Locale
      */
     private static $locales;
 
+    private static $supported;
+
     /**
      * Get all locales.
      *
@@ -51,5 +53,18 @@ class Locale
     public static function name($code)
     {
         return array_get(static::all(), $code);
+    }
+
+    public static function supported()
+    {
+        if (! is_null(self::$supported)) {
+            return self::$supported;
+        }
+
+        $supportedLocales = setting('supported_locales');
+
+        return self::$supported = array_filter(static::all(), function ($code) use ($supportedLocales) {
+            return in_array($code, $supportedLocales);
+        }, ARRAY_FILTER_USE_KEY);
     }
 }

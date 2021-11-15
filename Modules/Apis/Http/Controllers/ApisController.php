@@ -19,6 +19,7 @@ use Illuminate\Http\Response;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Modules\Account\Http\Requests\SaveAddressRequest;
@@ -46,8 +47,10 @@ use Modules\Payment\Facades\Gateway;
 use Modules\Product\Entities\Product;
 use Modules\Product\Entities\ProductLottery;
 use Modules\Product\Entities\ProductTranslation;
+use Modules\Setting\Entities\Setting;
 use Modules\Slider\Entities\Slider;
 use Modules\Support\Country;
+use Modules\Support\Locale;
 use Modules\Support\State;
 use Modules\User\Contracts\Authentication;
 use Modules\User\Entities\Role;
@@ -1279,6 +1282,33 @@ class ApisController extends Controller
                 'data' => false
             ]);
         }
+    }
+
+    public function getStaticPages(Request $request){
+        $locale = $request->input("lang");
+        $languages = array_keys(Locale::supported());
+
+        if(!in_array($locale,$languages)){
+            return response()->json([
+                'message' => "Language not supported"
+            ],422);
+        }
+
+        config(['app.locale' => $locale]);
+        $pages = Page::all();
+        $response = [];
+        foreach ($pages as $page){
+            if($locale == "en"){
+                $trans = $page->translations["0"];
+            }else{
+                $trans = $page->translations["1"];
+            }
+            $response[] = ["name"   => $trans->name, "body"   => $trans->body];
+        }
+        
+        return response()->json([
+            'data' => $response
+        ]);
     }
 }
 
