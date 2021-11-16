@@ -280,7 +280,7 @@ class ApisController extends Controller
                     'message' => "You can buy ".(int)$getLottery->max_ticket_user." items at once for this product",
                 ],422);
             }
-            
+
             $remainingTickets = getRemainingTicketsCount($request->product_id);
             if($remainingTickets <= 0) {
                 return response()->json([
@@ -1007,19 +1007,34 @@ class ApisController extends Controller
         $access_token = $output->access_token;
         curl_close ($ch);
 
-        $request->merge([
-            "customer_email"        => $user->email,
-            "customer_phone"        => $user->phone,
-            "billing"               => $userAddress->toArray(),
-            "billingAddressId"      => $userAddress->id,
-            "shippingAddressId"     => $userAddress->id,
-            "newBillingAddress"     => false,
-            "newShippingAddress"    => false,
-            "payment_method"        => "foloosi"
-        ]);
-        $order = $orderService->create($request);
+        if(!is_null($request->input('address'))) {
+            $request->merge([
+                "customer_email" => $user->email,
+                "customer_phone" => $user->phone,
+                "billing" => $userAddress->toArray(),
+                "billingAddressId" => $userAddress->id,
+                "shippingAddressId" => $userAddress->id,
+                "newBillingAddress" => false,
+                "newShippingAddress" => false,
+                "payment_method" => "foloosi"
+            ]);
 
-        $airway_bill = generateAirWayBill($request->input('user_id'), $request->input('address'));
+            $airway_bill = generateAirWayBill($request->input('user_id'), $request->input('address'));
+        }else{
+            $request->merge([
+                "customer_email" => $user->email,
+                "customer_phone" => $user->phone,
+                "billing" => null,
+                "billingAddressId" => null,
+                "shippingAddressId" => null,
+                "newBillingAddress" => false,
+                "newShippingAddress" => false,
+                "payment_method" => "foloosi"
+            ]);
+            $airway_bill = 0;
+        }
+
+        $order = $orderService->create($request);
         $order->update(['airway_bill' => $airway_bill]);
 
         DB::table("user_shippings")->where([
@@ -1030,19 +1045,21 @@ class ApisController extends Controller
         $postData = new \StdClass();
         $postData->action = "PURCHASE";
         $postData->amount = new \StdClass();
-        $postData->merchantAttributes = new \StdClass();
-        $postData->billingAddress = new \StdClass();
         $postData->amount->currencyCode = "AED";
         $postData->amount->value = bcmul(Cart::total()->amount(),100);
-        $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/home";
-        $postData->merchantAttributes->skipConfirmationPage = false;
-        $postData->merchantAttributes->merchantOrderReference = $request->input('user_id')."-".$order->id;
-        $postData->emailAddress = $user->email;
-        $postData->billingAddress->firstName = $userAddress->first_name;
-        $postData->billingAddress->lastName = $userAddress->last_name;
-        $postData->billingAddress->address1 = $userAddress->address_1;
-        $postData->billingAddress->city = $userAddress->city;
-        $postData->billingAddress->countryCode = $userAddress->country;
+        if(!is_null($request->input('address'))) {
+            $postData->merchantAttributes = new \StdClass();
+            $postData->billingAddress = new \StdClass();
+            $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/home";
+            $postData->merchantAttributes->skipConfirmationPage = false;
+            $postData->merchantAttributes->merchantOrderReference = $request->input('user_id') . "-" . $order->id;
+            $postData->emailAddress = $user->email;
+            $postData->billingAddress->firstName = $userAddress->first_name;
+            $postData->billingAddress->lastName = $userAddress->last_name;
+            $postData->billingAddress->address1 = $userAddress->address_1;
+            $postData->billingAddress->city = $userAddress->city;
+            $postData->billingAddress->countryCode = $userAddress->country;
+        }
 
         $outlet = env('NETWORK_OUTLET');
         $token = $access_token;
