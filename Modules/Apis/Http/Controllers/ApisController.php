@@ -850,7 +850,7 @@ class ApisController extends Controller
         $code = $this->auth->createReminderCode($user);
 
         Mail::to($user)
-            ->send(new ResetPasswordEmail($user, $this->resetCompleteRoute($user, $code)));
+            ->send(new ResetPasswordEmail($user, url("/reset_password?email=".$user->email."&code=".$code)));
 
         return response()->json([
             "message" => trans('user::messages.users.check_email_to_reset_password')
@@ -1331,6 +1331,26 @@ class ApisController extends Controller
 
         return response()->json([
             'data' => $response
+        ]);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function post_reset(Request $request){
+        $user = User::where('email', $request->input("email"))->firstOrFail();
+
+        $completed = $this->auth->completeResetPassword($user, $request->input("code"), $request->new_password);
+
+        if (! $completed) {
+            return response()->json([
+                'data' => trans('user::messages.users.invalid_reset_code')
+            ]);
+        }
+
+        return response()->json([
+            'data' => trans('user::messages.users.password_has_been_reset')
         ]);
     }
 }
