@@ -38,4 +38,4 @@ Route::post('activate_user', 'ApisController@activateUser')->name('activateUser'
 Route::post('apply_coupon', 'ApisController@apply_coupon')->name('apply_coupon');
 Route::post('remove_coupon', 'ApisController@remove_coupon')->name('remove_coupon');
 Route::post('get_static_pages', 'ApisController@getStaticPages')->name('getStaticPages');
-Route::post('post_reset', 'ApisController@post_reset')->name('post_reset');
+Route::post('post_reset', 'ApisController@post_reset')->name('password_post_reset');

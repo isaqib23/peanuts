@@ -1338,20 +1338,26 @@ class ApisController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function post_reset(Request $request){
+    public function post_reset(Request $request)
+    {
         $user = User::where('email', $request->input("email"))->firstOrFail();
+        if ($user) {
+            $completed = $this->auth->completeResetPassword($user, $request->input("code"), $request->new_password);
 
-        $completed = $this->auth->completeResetPassword($user, $request->input("code"), $request->new_password);
+            if (!$completed) {
+                return response()->json([
+                    'data' => trans('user::messages.users.invalid_reset_code')
+                ]);
+            }
 
-        if (! $completed) {
+            return response()->json([
+                'data' => trans('user::messages.users.password_has_been_reset')
+            ]);
+        } else {
             return response()->json([
                 'data' => trans('user::messages.users.invalid_reset_code')
             ]);
         }
-
-        return response()->json([
-            'data' => trans('user::messages.users.password_has_been_reset')
-        ]);
     }
 }
 
