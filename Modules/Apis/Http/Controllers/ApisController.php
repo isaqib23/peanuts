@@ -274,13 +274,13 @@ class ApisController extends Controller
             ],422);
         }*/
 
-        if($request->qty > (int)$getLottery->max_ticket_user){
-            return response()->json([
-                'message' => "You can buy ".(int)$getLottery->max_ticket_user." items at once for this product",
-            ],422);
-        }
-
         if($getLottery){
+            if($request->qty > (int)$getLottery->max_ticket_user){
+                return response()->json([
+                    'message' => "You can buy ".(int)$getLottery->max_ticket_user." items at once for this product",
+                ],422);
+            }
+            
             $remainingTickets = getRemainingTicketsCount($request->product_id);
             if($remainingTickets <= 0) {
                 return response()->json([
@@ -1305,7 +1305,7 @@ class ApisController extends Controller
             }
             $response[] = ["name"   => $trans->name, "body"   => $trans->body];
         }
-        
+
         return response()->json([
             'data' => $response
         ]);

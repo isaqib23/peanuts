@@ -21,8 +21,4 @@ class OrderEmailController
 
         return back()->with('success', trans('order::messages.invoice_sent'));
     }
-
-    public function search(){
-        return view('order::admin.orders.search');
-    }
 }

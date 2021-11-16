@@ -51,7 +51,8 @@ class ReportController
         $type = $request->query('type');
 
         if (! $this->reportTypeExists($type)) {
-            return redirect()->route('admin.reports.index', ['type' => 'coupons_report']);
+            return view('report::admin.reports.search_order');
+            //return redirect()->route('admin.reports.index', ['type' => 'coupons_report']);
         }
 
         return $this->report($type)->render($request);
@@ -77,5 +78,9 @@ class ReportController
     private function report($type)
     {
         return new $this->reports[$type];
+    }
+
+    public function sdsdsds(Request $request){
+        dd("sdsdsd");
     }
 }
