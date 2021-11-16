@@ -6,7 +6,7 @@
 @endcomponent
 
 @section('content')
-    <a href="{{ route('admin.orders.search') }}" class="btn btn-primary" style="position: absolute; top:55px; left:100px">Advance Search</a>
+    <a href="#" class="btn btn-primary" style="position: absolute; top:55px; left:100px">Advance Search</a>
     <div class="box box-primary">
         <div class="box-body index-table" id="orders-table">
             @component('admin::components.table')
@@ -33,6 +33,13 @@
         });
 
         new DataTable('#orders-table .table', {
+            dom: 'Blfrtip',
+            buttons: [
+                'copyHtml5',
+                'excelHtml5',
+                'csvHtml5',
+                'pdfHtml5'
+            ],
             columns: [
                 { data: 'id', width: '5%' },
                 { data: 'customer_name', orderable: false, searchable: false },

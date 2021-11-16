@@ -30,6 +30,13 @@
         });
 
         new DataTable('#transactions-table .table', {
+            dom: 'Blfrtip',
+            buttons: [
+                'copyHtml5',
+                'excelHtml5',
+                'csvHtml5',
+                'pdfHtml5'
+            ],
             columns: [
                 { data: 'order_id' },
                 { data: 'transaction_id' },
