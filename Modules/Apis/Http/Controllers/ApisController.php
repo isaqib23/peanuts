@@ -204,6 +204,12 @@ class ApisController extends Controller
                     $products[$key]->lottery = ProductLottery::where('link_product',$value->id)->first();
                 }
 
+                $getCart = DB::table("user_cart")->where([
+                    "user_id"       => $request->input('user_id'),
+                    "product_id"    => $value->id
+                ])->first();
+
+                $products[$key]->cart_qty = ($getCart) ? $getCart->qty : 0;
                 $products[$key]->sold_items = (string) getSoldLottery($value->id);
                 $products[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $value->id);
                 $products[$key]->thumbnail_image = (!is_null($value->base_image->path)) ? $value->base_image : NULL;
