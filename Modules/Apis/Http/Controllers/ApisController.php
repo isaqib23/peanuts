@@ -850,7 +850,7 @@ class ApisController extends Controller
         $code = $this->auth->createReminderCode($user);
 
         Mail::to($user)
-            ->send(new ResetPasswordEmail($user, url("/reset_password?email=".$user->email."&code=".$code)));
+            ->send(new ResetPasswordEmail($user, url("/home/reset_password?email=".$user->email."&code=".$code)));
 
         return response()->json([
             "message" => trans('user::messages.users.check_email_to_reset_password')
@@ -1346,16 +1346,16 @@ class ApisController extends Controller
 
             if (!$completed) {
                 return response()->json([
-                    'data' => trans('user::messages.users.invalid_reset_code')
+                    'message' => trans('user::messages.users.invalid_reset_code')
                 ]);
             }
 
             return response()->json([
-                'data' => trans('user::messages.users.password_has_been_reset')
+                'message' => trans('user::messages.users.password_has_been_reset')
             ]);
         } else {
             return response()->json([
-                'data' => trans('user::messages.users.invalid_reset_code')
+                'message' => trans('user::messages.users.invalid_reset_code')
             ]);
         }
     }
