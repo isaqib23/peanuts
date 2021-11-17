@@ -6,7 +6,7 @@
 @endcomponent
 
 @section('content')
-    <a href="#" class="btn btn-primary" style="position: absolute; top:55px; left:100px">Advance Search</a>
+    <a href="{{route('admin.reports.index', ['type' => 'ticket_report'])}}" class="btn btn-primary" style="position: absolute; top:55px; left:100px">Advance Search</a>
     <div class="box box-primary">
         <div class="box-body index-table" id="orders-table">
             @component('admin::components.table')

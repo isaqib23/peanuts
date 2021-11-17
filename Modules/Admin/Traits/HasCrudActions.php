@@ -111,7 +111,6 @@ trait HasCrudActions
      */
     public function show($id)
     {
-        //dd($this->getRoutePrefix());
         $entity = $this->getEntity($id);
         if($this->getRoutePrefix() == "admin.orders"){
             $entity->tickets = OrderTicket::where(["order_id" => $entity->id])->get()->pluck("ticket_number");

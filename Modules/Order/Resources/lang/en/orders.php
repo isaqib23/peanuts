@@ -40,4 +40,10 @@ return [
     'coupon' => 'Coupon',
     'tax' => 'Tax',
     'total' => 'Total',
+    'search' => [
+        "user"      => "User Information",
+        "order"     => "Order Information",
+        "advance_search"  =>  "Advance Search",
+        "ticket"  =>  "Search by Ticket",
+    ]
 ];

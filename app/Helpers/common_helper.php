@@ -1,8 +1,10 @@
 <?php
 
+use FleetCart\OrderTicket;
 use Modules\Address\Entities\Address;
 use Modules\Cart\Facades\Cart;
 use Modules\Coupon\Entities\Coupon;
+use Modules\Order\Entities\Order;
 use Modules\Product\Entities\Product;
 use Modules\User\Entities\User;
 
