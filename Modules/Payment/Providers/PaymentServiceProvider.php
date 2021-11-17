@@ -4,6 +4,7 @@ namespace Modules\Payment\Providers;
 
 use Modules\Payment\Gateways\COD;
 use Modules\Payment\Gateways\Foloosi;
+use Modules\Payment\Gateways\NetworkPayment;
 use Modules\Payment\Gateways\Paytm;
 use Modules\Payment\Facades\Gateway;
 use Modules\Payment\Gateways\PayPal;
@@ -72,7 +73,7 @@ class PaymentServiceProvider extends ServiceProvider
     private function registerNetworkPayment()
     {
         if ($this->enabled('network')) {
-            Gateway::register('network', new Foloosi);
+            Gateway::register('network', new NetworkPayment());
         }
     }
 
