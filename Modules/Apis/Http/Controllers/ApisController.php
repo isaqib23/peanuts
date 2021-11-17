@@ -1241,7 +1241,7 @@ class ApisController extends Controller
 
     public function order_confirmation(Request $request, OrderService $orderService){
         $json = file_get_contents("php://input");
-        \DB::table()->insert([
+        \DB::table("webhook")->insert([
             "content" => $json,
             "created_at" => date("Y-m-d H:i:s"),
             "updated_at" => date("Y-m-d H:i:s")
