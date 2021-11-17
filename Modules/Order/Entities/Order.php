@@ -288,7 +288,7 @@ class Order extends Model
     {
         $this->transaction()->create([
             'transaction_id' => $transaction_id,
-            'payment_method' => 'foloosi',
+            'payment_method' => 'network',
         ]);
     }
 }

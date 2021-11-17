@@ -30,6 +30,7 @@ class PaymentServiceProvider extends ServiceProvider
         $this->registerPayPalExpress();
         $this->registerStripe();
         $this->registerFoloosi();
+        $this->registerNetworkPayment();
         $this->registerPaytm();
         $this->registerRazorpay();
         $this->registerInstamojo();
@@ -65,6 +66,13 @@ class PaymentServiceProvider extends ServiceProvider
     {
         if ($this->enabled('foloosi')) {
             Gateway::register('foloosi', new Foloosi);
+        }
+    }
+
+    private function registerNetworkPayment()
+    {
+        if ($this->enabled('network')) {
+            Gateway::register('network', new Foloosi);
         }
     }
 

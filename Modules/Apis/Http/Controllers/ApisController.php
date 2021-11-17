@@ -1022,7 +1022,7 @@ class ApisController extends Controller
                 "shippingAddressId" => $userAddress->id,
                 "newBillingAddress" => false,
                 "newShippingAddress" => false,
-                "payment_method" => "foloosi"
+                "payment_method" => "network"
             ]);
 
             $airway_bill = generateAirWayBill($request->input('user_id'), $request->input('address'));
@@ -1035,7 +1035,7 @@ class ApisController extends Controller
                 "shippingAddressId" => null,
                 "newBillingAddress" => false,
                 "newShippingAddress" => false,
-                "payment_method" => "foloosi"
+                "payment_method" => "network"
             ]);
             $airway_bill = 0;
         }
