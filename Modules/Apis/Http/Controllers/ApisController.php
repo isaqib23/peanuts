@@ -1241,12 +1241,15 @@ class ApisController extends Controller
 
     public function order_confirmation(Request $request, OrderService $orderService){
         $json = file_get_contents("php://input");
-        \DB::table("webhook")->insert(["content" => $json]);
-        exit;
+        \DB::table()->insert([
+            "content" => $json,
+            "created_at" => date("Y-m-d H:i:s"),
+            "updated_at" => date("Y-m-d H:i:s")
+        ]);
         $output = json_decode($json);
 
         if ($output->eventName == "PURCHASED") {
-            $callBackData = $output->merchantAttributes->merchantOrderReference;
+            $callBackData = $output->order->merchantAttributes->merchantOrderReference;
             $user_id = strtok($callBackData, '-');
             $orderId = substr($callBackData, strpos($callBackData, "-") + 1);
 
@@ -1255,7 +1258,7 @@ class ApisController extends Controller
 
             $order = Order::findOrFail($orderId);
 
-            $order->storeFoloosiTransaction($request->input('ref'));
+            $order->storeFoloosiTransaction($output->order->reference);
 
             $order->update(['status' => "completed"]);
         }
