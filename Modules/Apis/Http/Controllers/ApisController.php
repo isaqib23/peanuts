@@ -1241,6 +1241,8 @@ class ApisController extends Controller
 
     public function order_confirmation(Request $request, OrderService $orderService){
         $json = file_get_contents("php://input");
+        \DB::table("webhook")->insert(["content" => $json]);
+        exit;
         $output = json_decode($json);
 
         if ($output->eventName == "PURCHASED") {
