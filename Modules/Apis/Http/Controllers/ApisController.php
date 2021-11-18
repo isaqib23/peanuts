@@ -1169,14 +1169,14 @@ class ApisController extends Controller
                 $shippingMethod = new \stdClass();
                 $shippingMethod->label = "First Flight";
                 $shippingMethod->content = "";
-                $shippingMethod->amount = 35;
+                $shippingMethod->amount = 30;
                 saveUserShipping($request, $shippingMethod);
                 Cart::addShippingMethod($shippingMethod);
 
                 return response()->json([
                     'data' => [
                         "carrier_name" => null,
-                        "delivery_rate" => 35,
+                        "delivery_rate" => 30,
                         "delivery_in_days" => null,
                         "cart_total" => Cart::total()->currency() . " " . number_format((float)Cart::total()->amount(), 2, '.', '')
                     ],

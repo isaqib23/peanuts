@@ -227,7 +227,6 @@ function generateAirWayBill($user_id,$address){
     $postData->AirwayBillData->SpecialInstruction = "";
     $postData->AirwayBillData->Weight = 1;
 
-
     $json = json_encode($postData);
     $ch = curl_init();
 
@@ -237,7 +236,7 @@ function generateAirWayBill($user_id,$address){
     curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
 
     $output = json_decode(curl_exec($ch));
-    $AirwayBillNumber = $output->AirwayBillNumber;
+    $AirwayBillNumber = ($output->AirwayBillNumber == "") ? 0 : $output->AirwayBillNumber;
 
     curl_close ($ch);
 
