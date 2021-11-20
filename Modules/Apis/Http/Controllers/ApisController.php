@@ -341,7 +341,7 @@ class ApisController extends Controller
             }
         }
 
-        return getdirectCart($request);
+        return getUserCart($request);
     }
 
     /**
