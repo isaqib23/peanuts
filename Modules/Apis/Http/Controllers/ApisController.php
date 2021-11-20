@@ -994,7 +994,12 @@ class ApisController extends Controller
      * @return JsonResponse
      */
     public function createPayment(Request $request, OrderService $orderService){
-        getUserCart($request);
+        if($request->input("is_direct")) {
+            getdirectCart($request);
+        }else {
+            getUserCart($request);
+        }
+        
         $user = User::where("id",$request->input('user_id'))->first();
         $userAddress = Address::where("id",$request->input('address'))->first();
 
