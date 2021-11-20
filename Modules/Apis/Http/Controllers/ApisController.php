@@ -999,7 +999,7 @@ class ApisController extends Controller
      * @return JsonResponse
      */
     public function createPayment(Request $request, OrderService $orderService){
-        if($request->input("is_direct")) {
+        if($request->input("is_direct") == "true") {
             getdirectCart($request);
         }else {
             getUserCart($request);
