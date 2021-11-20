@@ -320,13 +320,15 @@ class ApisController extends Controller
                 "user_id"       => $request->input('user_id'),
                 "product_id"    => $request->product_id
             ])->update([
-                "qty"   => $qty
+                "qty"   => $qty,
+                "product_type" => $getProduct->product_type,
             ]);
         }else {
             DB::table("user_cart")->insert([
                 "user_id" => $request->input('user_id'),
                 "qty" => $request->qty,
                 "product_id" => $request->product_id,
+                "product_type" => $getProduct->product_type,
                 "options" => json_encode($options),
             ]);
         }
@@ -1098,7 +1100,12 @@ class ApisController extends Controller
 
         curl_close ($ch);
 
-        DB::table("user_cart")->where("user_id", $request->input('user_id'))->delete();
+        if($request->input("is_direct") == "true") {
+            DB::table("user_cart")->where(["user_id" => $request->input('user_id'), "product_type" => 0])->delete();
+        }else {
+            DB::table("user_cart")->where(["user_id" => $request->input('user_id'), "product_type" => 1])->delete();
+        }
+        
         DB::table("users_coupons")->where("user_id", $request->input('user_id'))->delete();
         DB::table("user_shippings")->where("user_id", $request->input('user_id'))->delete();
         return response()->json([
