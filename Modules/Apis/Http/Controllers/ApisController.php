@@ -274,12 +274,12 @@ class ApisController extends Controller
     {
         $getLottery = ProductLottery::where("product_id",$request->product_id)->first();
         $soldTickets = getSoldLottery($request->product_id);
+        $getProduct = Product::where("id",$request->product_id)->first();
         /*if($getLottery && ($request->qty > (int)$getLottery->min_ticket)){
             return response()->json([
                 'message' => "You can buy ".(int)$getLottery->min_ticket." items at once for this product",
             ],422);
         }*/
-
         if($getLottery){
             if($request->qty > (int)$getLottery->max_ticket_user){
                 return response()->json([
@@ -311,11 +311,16 @@ class ApisController extends Controller
             "product_id"    => $request->product_id
         ])->first();
         if(!is_null($userCart)){
+            if($getProduct->product_type == 0){
+                $qty = 1;
+            }else{
+                $qty = (int) $request->qty + (int) $userCart->qty;
+            }
             DB::table("user_cart")->where([
                 "user_id"       => $request->input('user_id'),
                 "product_id"    => $request->product_id
             ])->update([
-                "qty"   => (int) $request->qty + (int) $userCart->qty
+                "qty"   => $qty
             ]);
         }else {
             DB::table("user_cart")->insert([
@@ -999,7 +1004,7 @@ class ApisController extends Controller
         }else {
             getUserCart($request);
         }
-        
+
         $user = User::where("id",$request->input('user_id'))->first();
         $userAddress = Address::where("id",$request->input('address'))->first();
 
