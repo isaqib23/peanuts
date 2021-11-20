@@ -244,14 +244,14 @@ class ApisController extends Controller
             $product->lottery = $lottery;
         }
 
-        $product->sold_tickets = OrderTicket::where(["product_id" => $request->input('id'), "status" => "sold"])->count();
-        $product->total_tickets = OrderTicket::where(["product_id" => $request->input('id')])->count();
-        $product->is_out_of_stock = (getRemainingTicketsCount($request->input('id')) > 0) ? false : true;
+        $product->sold_tickets = OrderTicket::where(["product_id" => $product->id, "status" => "sold"])->count();
+        $product->total_tickets = OrderTicket::where(["product_id" => $product->id])->count();
+        $product->is_out_of_stock = (getRemainingTicketsCount($product->id) > 0) ? false : true;
         $product->is_expired = checkLotteryExpiry($product,$product->lottery);
 
         $getCart = DB::table("user_cart")->where([
             "user_id"       => $request->input('user_id'),
-            "product_id"    => $request->input('id')
+            "product_id"    => $product->id
         ])->first();
 
         $product->cart_qty = ($getCart) ? $getCart->qty : 0;
