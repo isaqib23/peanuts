@@ -268,7 +268,7 @@ class ApisController extends Controller
      * Store a newly created resource in storage.
      *
      * @param \Modules\Apis\Http\Requests\StoreCartItemRequest $request
-     * @return \Modules\Cart\Cart
+     * @return array
      */
     public function addToCart(\Modules\Apis\Http\Requests\StoreCartItemRequest $request)
     {
@@ -341,7 +341,7 @@ class ApisController extends Controller
             }
         }
 
-        return $cartArray;
+        return getdirectCart($request);
     }
 
     /**
@@ -1105,7 +1105,7 @@ class ApisController extends Controller
         }else {
             DB::table("user_cart")->where(["user_id" => $request->input('user_id'), "product_type" => 1])->delete();
         }
-        
+
         DB::table("users_coupons")->where("user_id", $request->input('user_id'))->delete();
         DB::table("user_shippings")->where("user_id", $request->input('user_id'))->delete();
         return response()->json([
