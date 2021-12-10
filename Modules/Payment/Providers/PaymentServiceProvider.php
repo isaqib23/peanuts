@@ -3,8 +3,6 @@
 namespace Modules\Payment\Providers;
 
 use Modules\Payment\Gateways\COD;
-use Modules\Payment\Gateways\Foloosi;
-use Modules\Payment\Gateways\NetworkPayment;
 use Modules\Payment\Gateways\Paytm;
 use Modules\Payment\Facades\Gateway;
 use Modules\Payment\Gateways\PayPal;
@@ -30,8 +28,6 @@ class PaymentServiceProvider extends ServiceProvider
 
         $this->registerPayPalExpress();
         $this->registerStripe();
-        $this->registerFoloosi();
-        $this->registerNetworkPayment();
         $this->registerPaytm();
         $this->registerRazorpay();
         $this->registerInstamojo();
@@ -60,20 +56,6 @@ class PaymentServiceProvider extends ServiceProvider
     {
         if ($this->enabled('stripe')) {
             Gateway::register('stripe', new Stripe);
-        }
-    }
-
-    private function registerFoloosi()
-    {
-        if ($this->enabled('foloosi')) {
-            Gateway::register('foloosi', new Foloosi);
-        }
-    }
-
-    private function registerNetworkPayment()
-    {
-        if ($this->enabled('network')) {
-            Gateway::register('network', new NetworkPayment());
         }
     }
 

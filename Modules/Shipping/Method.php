@@ -10,13 +10,11 @@ class Method
     public $name;
     public $label;
     public $cost;
-    public $content;
 
-    public function __construct($name, $label, $cost, $content)
+    public function __construct($name, $label, $cost)
     {
         $this->name = $name;
         $this->label = $label;
-        $this->content = $content;
         $this->cost = Money::inDefaultCurrency($cost);
     }
 

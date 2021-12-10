@@ -48,9 +48,11 @@ use Modules\Product\Entities\Product;
 use Modules\Product\Entities\ProductLottery;
 use Modules\Product\Entities\ProductTranslation;
 use Modules\Setting\Entities\Setting;
+use Modules\Shipping\Facades\ShippingMethod;
 use Modules\Slider\Entities\Slider;
 use Modules\Support\Country;
 use Modules\Support\Locale;
+use Modules\Support\Money;
 use Modules\Support\State;
 use Modules\User\Contracts\Authentication;
 use Modules\User\Entities\Role;
@@ -218,6 +220,7 @@ class ApisController extends Controller
                 $products[$key]->total_tickets = OrderTicket::where(["product_id" => $value->id])->count();
                 $products[$key]->is_out_of_stock = (getRemainingTicketsCount($value->id) > 0) ? false : true;
                 $products[$key]->is_expired = checkLotteryExpiry($value,$value->lottery);
+
 
                 if($products[$key]->lottery){
                     array_push($response,$products[$key]);
@@ -390,6 +393,14 @@ class ApisController extends Controller
             foreach ($cartArray as $key => $value){
                 if($key == "items") {
                     $cartArray["items"] = array_values($value->toArray());
+foreach ($cartArray["items"] as $key1 => $value1){
+                    $product = $value1->product;
+                    $cartArray["items"][$key1]->product->sold_items = (string) getSoldLottery($product->id);
+                    $cartArray["items"][$key1]->product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
+                    $cartArray["items"][$key1]->product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
+                    $cartArray["items"][$key1]->product->suppliers = (!is_null($product->supplier->id) && count($product->supplier) > 0) ? $product->supplier : NULL;
+                    $cartArray["items"][$key1]->qty = (string)$value1->qty;
+                }
                 }
             }
         }
@@ -439,6 +450,7 @@ class ApisController extends Controller
                         $cartArray["items"][$key1]->product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
                         $cartArray["items"][$key1]->product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
                         $cartArray["items"][$key1]->product->suppliers = (!is_null($product->supplier->id)) ? $product->supplier : NULL;
+$cartArray["items"][$key1]->qty = (string)$value1->qty;
                     }
                 }
             }
@@ -554,9 +566,19 @@ class ApisController extends Controller
             array_push($gateways,$value);
         }
 
+        $shippingMethods = [];
+        foreach (ShippingMethod::all() as $key => $value){
+            array_push($shippingMethods,[
+                "name"  => $value->name,
+                "label" => $value->label,
+                "cost" => $value->cost->amount()
+            ]);
+        }
+
         $data = [
             'countries' => $countries,
             'gateways' => $gateways,
+            'shipping' => $shippingMethods,
             'defaultAddress' => $user->addresses ?? new DefaultAddress,
         ];
 
@@ -659,6 +681,7 @@ class ApisController extends Controller
                 if($products->count() > 0) {
                     $products = $products->toArray();
                     foreach ($products as $proKey => $value){
+
                         if($request->status == 'active') {
                             $lottery = ProductLottery::where('product_id', $value["id"])
                                 ->where('to_date', '>=', Carbon::now()->format('Y-m-d'))->first();
@@ -674,7 +697,7 @@ class ApisController extends Controller
                             $products[$proKey]['tickets'] = getSoldTickets($value["id"],$order->id);
                             $products[$proKey]['is_added_to_wishlist'] = isAddedToWishlist($request->input('user_id'), $value["id"]);
                             $products[$proKey]['thumbnail_image'] = (count($value["base_image"]) > 0) ? $value["base_image"] : NULL;
-                            $products[$proKey]['suppliers'] = (!isset($value["supplier"]["id"])) ? $value["supplier"] : NULL;
+                            $products[$proKey]['suppliers'] = (count($value["supplier"]) > 0) ? $value["supplier"] : NULL;
 
                             $products[$proKey]['sold_tickets'] = OrderTicket::where(["product_id" => $value["id"], "status" => "sold"])->count();
                             $products[$proKey]['total_tickets'] = OrderTicket::where(["product_id" => $value["id"]])->count();
@@ -857,7 +880,7 @@ class ApisController extends Controller
         $code = $this->auth->createReminderCode($user);
 
         Mail::to($user)
-            ->send(new ResetPasswordEmail($user, url("/home/reset_password?email=".$user->email."&code=".$code)));
+            ->send(new ResetPasswordEmail($user, $this->resetCompleteRoute($user, $code)));
 
         return response()->json([
             "message" => trans('user::messages.users.check_email_to_reset_password')
@@ -988,6 +1011,9 @@ class ApisController extends Controller
             foreach ($products as $key => $value){
                 $products[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $value->id);
                 $products[$key]->thumbnail_image = (!is_null($value->base_image->path)) ? $value->base_image : NULL;
+foreach ($products[$key]->translations as $key1=>$tra){
+                    $products[$key]->translations[$key1]->product_id = (string)$tra->product_id;
+                }
             }
         }
         return response()->json([
@@ -1065,13 +1091,13 @@ class ApisController extends Controller
         $postData->amount = new \StdClass();
         $postData->amount->currencyCode = "AED";
         $postData->amount->value = bcmul(Cart::total()->amount(),100);
+        $postData->merchantAttributes = new \StdClass();
+        $postData->emailAddress = $user->email;
+        $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/home";
+        $postData->merchantAttributes->skipConfirmationPage = false;
+        $postData->merchantAttributes->merchantOrderReference = $request->input('user_id') . "-" . $order->id;
         if(!is_null($request->input('address'))) {
-            $postData->merchantAttributes = new \StdClass();
             $postData->billingAddress = new \StdClass();
-            $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/home";
-            $postData->merchantAttributes->skipConfirmationPage = false;
-            $postData->merchantAttributes->merchantOrderReference = $request->input('user_id') . "-" . $order->id;
-            $postData->emailAddress = $user->email;
             $postData->billingAddress->firstName = $userAddress->first_name;
             $postData->billingAddress->lastName = $userAddress->last_name;
             $postData->billingAddress->address1 = $userAddress->address_1;
@@ -1107,7 +1133,6 @@ class ApisController extends Controller
         }
 
         DB::table("users_coupons")->where("user_id", $request->input('user_id'))->delete();
-        DB::table("user_shippings")->where("user_id", $request->input('user_id'))->delete();
         return response()->json([
             'data' => [
                 "order_reference"       => $order_reference,
@@ -1172,28 +1197,28 @@ class ApisController extends Controller
     public function get_delivery_rates(Request $request){
         getUserCart($request);
 
+        $userShipping = ShippingMethod::get($request->input('delivery_type'));
+        if(is_null($userShipping)){
+            return response()->json([
+                "message" => "Invalid Shipping",
+            ],422);
+        }
+
         $user_id = $request->input('user_id');
         $address_id = $request->input('address_id');
-        $delivery_type = $request->input('delivery_type');
-        $shippingMethod = new \stdClass();
-        $shippingMethod->delivery_type = $delivery_type;
-        $shippingMethod->content = "";
-        saveUserShipping($request, $shippingMethod);
+        saveUserShipping($request, $userShipping);
 
         if ($address_id) {
             $userAddress = Address::where("id", $address_id)->first();
             if ($userAddress->country == "AE") {
-                $shippingMethod = new \stdClass();
-                $shippingMethod->label = "First Flight";
-                $shippingMethod->content = "";
-                $shippingMethod->amount = 30;
-                saveUserShipping($request, $shippingMethod);
-                Cart::addShippingMethod($shippingMethod);
+                $userShipping->content = "";
+                saveUserShipping($request, $userShipping);
+                Cart::addShippingMethod($userShipping);
 
                 return response()->json([
                     'data' => [
                         "carrier_name" => null,
-                        "delivery_rate" => 30,
+                        "delivery_rate" => $userShipping->cost->amount(),
                         "delivery_in_days" => null,
                         "cart_total" => Cart::total()->currency() . " " . number_format((float)Cart::total()->amount(), 2, '.', '')
                     ],
@@ -1204,12 +1229,9 @@ class ApisController extends Controller
 
             try {
                 $dhlRate = getDHLDeliveryRate($user, $userAddress);
-                $shippingMethod = new \stdClass();
-                $shippingMethod->label = "DHL";
-                $shippingMethod->content = $dhlRate["carrier_name"]." - approx ".$dhlRate["delivery_in_days"]." days";
-                $shippingMethod->amount = $dhlRate["delivery_rate"];
-                saveUserShipping($request, $shippingMethod);
-                Cart::addShippingMethod($shippingMethod);
+                $userShipping->cost = Money::inDefaultCurrency($dhlRate["delivery_rate"]);
+                saveUserShipping($request, $userShipping);
+                Cart::addShippingMethod($userShipping);
 
                 $dhlRate['cart_total'] = Cart::total()->currency() . " " . number_format((float)Cart::total()->amount(), 2, '.', '');
                 return response()->json([
@@ -1330,6 +1352,7 @@ class ApisController extends Controller
     }
 
     public function getStaticPages(Request $request){
+
         $locale = $request->input("lang");
         $languages = array_keys(Locale::supported());
 
@@ -1341,6 +1364,7 @@ class ApisController extends Controller
 
         config(['app.locale' => $locale]);
         $pages = Page::all();
+
         $response = [];
         foreach ($pages as $page){
             if($locale == "en"){

@@ -66,15 +66,21 @@ function getLotteryProduct($id, $data) {
 
 function updateProductLottery($orderId){
     $getProduct = \Modules\Order\Entities\OrderProduct::where("order_id",$orderId)->get();
+
     foreach ($getProduct as $key => $value){
         $getLottery = \Modules\Product\Entities\ProductLottery::where("product_id",$value->product_id)->first();
-
+        // update stock
+        $getPro = (new \Modules\Product\Entities\Product)->where("id", $getLottery->product_id)->first();
+        if($getPro && $getPro->product_type == "0" && $getPro->qty == 0){
+            (new \Modules\Product\Entities\Product)->where("id", $getLottery->product_id)->update(['in_stock' => 0]);
+        }
         if($getLottery) {
             $soldTickets = (int)getSoldLottery($getLottery->product_id);
 
             if ($soldTickets >= (int)$getLottery->min_ticket) {
+
                 // unlock product
-                (new \Modules\Product\Entities\Product)->where("id", $getLottery->product_id)->update(['is_unlocked' => "true"]);
+                (new \Modules\Product\Entities\Product)->where("id", $getLottery->link_product)->update(['is_unlocked' => "true"]);
                 $currentPrice = $getLottery->initial_price - ($soldTickets - (int)$getLottery->min_ticket) * $getLottery->reduce_price;
                 if ($currentPrice < $getLottery->bottom_price) {
                     $currentPrice = $getLottery->bottom_price;
@@ -89,7 +95,8 @@ function updateProductLottery($orderId){
                 ]);
 
                 (new \Modules\Product\Entities\Product)->where("id",$getLottery->link_product)->update([
-                    "current_price"     => $currentPrice
+                    "current_price"     => $currentPrice,
+                    "special_price"     => $currentPrice
                 ]);
             }
         }
@@ -356,6 +363,7 @@ function getUserCart($request){
                     $cartArray["items"][$key1]->product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
                     $cartArray["items"][$key1]->product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
                     $cartArray["items"][$key1]->product->suppliers = (!is_null($product->supplier->id)) ? $product->supplier : NULL;
+                    $cartArray["items"][$key1]->qty = (string)$value1->qty;
                 }
             }
         }
@@ -370,34 +378,34 @@ function getUserCart($request){
 }
 
 function saveUserShipping($request,$userShipping){
-    $shipping = \DB::table("user_shippings")->where("user_id",$request->user_id)->first();
+    $shipping = \DB::table("user_shippings")->where("user_id",$request->user_id)->whereNULL("order_id")->first();
 
     if(!$shipping){
         return \DB::table("user_shippings")->insert([
             "address_id"    => $request->address_id,
             "delivery_type"    => $request->delivery_type,
             "label"         => (isset($userShipping->label)) ? $userShipping->label : null,
-            "amount"        => (isset($userShipping->amount)) ? $userShipping->amount : null,
+            "amount"        => $userShipping->cost->amount(),
             "user_id"        => $request->user_id,
-            "content"        => $userShipping->content,
+            "content"        => (isset($userShipping->content)) ? $userShipping->content : "",
             "created_at"    => date("Y-m-d H:i:s"),
             "updated_at"    => date("Y-m-d H:i:s"),
         ]);
     }else{
-        return \DB::table("user_shippings")->where("user_id",$request->user_id)
+        return \DB::table("user_shippings")->where("user_id",$request->user_id)->whereNULL("order_id")
             ->update([
                 "address_id"        => $request->address_id,
                 "delivery_type"    => $request->delivery_type,
-                "content"    => $userShipping->content,
+                "content"    => (isset($userShipping->content)) ? $userShipping->content : "",
                 "label"         => (isset($userShipping->label)) ? $userShipping->label : null,
-                "amount"        => (isset($userShipping->amount)) ? $userShipping->amount : null,
+                "amount"        => $userShipping->cost->amount(),
                 "updated_at"    => date("Y-m-d H:i:s")
             ]);
     }
 }
 
 function getUserShipping($request){
-    $shipping = \DB::table("user_shippings")->where("user_id",$request->user_id)->first();
+    $shipping = \DB::table("user_shippings")->where("user_id",$request->user_id)->whereNull("order_id")->first();
     if($shipping) {
         $shipping->name = $shipping->label;
     }
@@ -432,6 +440,7 @@ function getdirectCart($request){
                     $cartArray["items"][$key1]->product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
                     $cartArray["items"][$key1]->product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
                     $cartArray["items"][$key1]->product->suppliers = (!is_null($product->supplier->id)) ? $product->supplier : NULL;
+                    $cartArray["items"][$key1]->qty = (string)$value1->qty;
                 }
             }
         }
@@ -452,12 +461,16 @@ function generateTicketNumbmers($product,$maxTickets,$type="insert"){
         if(!$getTicket){
             createTickets($product,$maxTickets);
         }else {
-            $ids = \FleetCart\OrderTicket::all()->take($maxTickets)->pluck('id')->toArray();
+            $ids = \FleetCart\OrderTicket::where("product_id", $product["id"])->pluck('id')->toArray();
             $diff = $maxTickets - count($ids);
+
             if($diff > 0){
                 createTickets($product,$diff);
-            }else {
-                \FleetCart\OrderTicket::whereNotIn("id", $ids)->where("product_id", $product["id"])->delete();
+            }
+            if($diff < 0) {
+                $diff = abs($diff);
+                $arr = array_slice($ids, -$diff, $diff, true);
+                \FleetCart\OrderTicket::whereIn("id", $arr)->where("product_id", $product["id"])->delete();
             }
         }
     }else {
@@ -469,9 +482,8 @@ function updateProductTickets($orderId){
     $orderProducts = \Modules\Order\Entities\OrderProduct::where("order_id",$orderId)->get();;
     foreach ($orderProducts as $key => $value){
         $product = Product::where("id",$value->product_id)->first();
-
         if($product && $product->product_type == 1) {
-            $getProductTickets = \FleetCart\OrderTicket::where("status","pending")->take($value->qty);
+            $getProductTickets = \FleetCart\OrderTicket::where(["product_id" => $value->product_id, "status" => "pending"])->take($value->qty)->get();
             $ticketIds = $getProductTickets->pluck("id")->toArray();
             \FleetCart\OrderTicket::whereIn("id",$ticketIds)->update(["status" => "sold","order_id" => $orderId]);
         }
@@ -560,4 +572,17 @@ function getVoteResult($value){
 
     return "Product A(<strong>".$product_1->vote_percentage."%</strong>)"." vs ".
            "Product B(<strong>".$product_2->vote_percentage."%</strong>)";
+}
+
+function updateSimpleProduct($product, $data){
+    if ($product->product_type == 1){
+        $getLottery = \Modules\Product\Entities\ProductLottery::where("product_id", $product->id)->first();
+        (new \Modules\Product\Entities\Product)->where("id",$getLottery->link_product)->update([
+            "price"                 => $getLottery->initial_price,
+            "current_price"         => $getLottery->initial_price,
+            "special_price"         => $getLottery->current_price,
+            "special_price_start"   => $getLottery->from_date,
+            "special_price_end"     => $getLottery->to_date
+        ]);
+    }
 }

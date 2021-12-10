@@ -194,7 +194,7 @@ class Product extends Model
 
     public function scopeWithName($query)
     {
-        $query->with('translations:id,product_id,locale,name,description');
+        $query->with('translations:id,product_id,locale,name,description,short_description');
     }
 
     public function scopeWithBaseImage($query)

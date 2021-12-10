@@ -93,6 +93,7 @@ trait HasCrudActions
         $allowedRoutes = ["admin.products.update","admin.products.store"];
         if(in_array($this->getRequest('store')->route()->getName(), $allowedRoutes)){
             updateLotteryProduct($entity,$this->getRequest('store')->all(), "store");
+            updateSimpleProduct($entity,$this->getRequest('store')->all());
         }
 
         if (method_exists($this, 'redirectTo')) {
@@ -120,7 +121,7 @@ trait HasCrudActions
             if($shipping){
                 if($shipping->delivery_type == 1){
                     $orderType = "Donate the product";
-                }elseif($shipping->delivery_type == 1){
+                }elseif($shipping->delivery_type == 2){
                     $orderType = "Self Pikup";
                 }else{
                     $orderType = "Delivery on Selected Address";
@@ -206,6 +207,7 @@ trait HasCrudActions
         if(in_array($this->getRequest('update')->route()->getName(), $allowedRoutes)){
             updateLotteryProduct($entity,$this->getRequest('store')->all(), 'update');
             //updateWinner($entity,$this->getRequest('store')->all());
+            updateSimpleProduct($entity,$this->getRequest('store')->all());
         }
 
         if (method_exists($this, 'redirectTo')) {

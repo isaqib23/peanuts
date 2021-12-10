@@ -13,6 +13,14 @@
 
         @if (request()->routeIs('admin.users.edit'))
             {{ Form::checkbox('activated', trans('user::attributes.users.activated'), trans('user::users.form.activated'), $errors, $user, ['disabled' => $user->id === $currentUser->id, 'checked' => old('activated', $user->isActivated())]) }}
+
+            <div class="form-group">
+                <div class="{{ ($buttonOffset ?? true) ? 'col-md-offset-2' : '' }} col-md-10">
+                    <button type="submit" class="btn btn-primary" data-loading style="display: block !important;">
+                        {{ trans('admin::admin.buttons.save') }}
+                    </button>
+                </div>
+            </div>
         @endif
     </div>
 </div>

@@ -54,7 +54,7 @@ class Cart extends DarryldecodeCart implements JsonSerializable
         $this->add([
             'id' => md5("product_id.{$product->id}:options." . serialize($options)),
             'name' => $product->name,
-            'price' => ($product->product_type == 1) ? $product->selling_price->amount() : $product->current_price,
+            'price' => $product->selling_price->amount(),
             'quantity' => $qty,
             'attributes' => [
                 'product' => $product,
@@ -187,7 +187,7 @@ class Cart extends DarryldecodeCart implements JsonSerializable
             'name' => $shippingMethod->label,
             'type' => 'shipping_method',
             'target' => 'total',
-            'value' => "+{$shippingMethod->amount}",
+            'value' => "+{$shippingMethod->cost->amount()}",
             'order' => 1,
             'attributes' => [
                 'shipping_method' => $shippingMethod,
@@ -385,7 +385,8 @@ class Cart extends DarryldecodeCart implements JsonSerializable
             'quantity' => $this->quantity(),
             'availableShippingMethods' => $this->availableShippingMethods(),
             'subTotal' => $this->subTotal(),
-            'shippingCost' => $this->shippingMethod(),
+            'shippingMethodName' => $this->shippingMethod()->name(),
+            'shippingCost' => $this->shippingCost(),
             'coupon' => $this->coupon(),
             'taxes' => $this->taxes(),
             'total' => $this->total(),

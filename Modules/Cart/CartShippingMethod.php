@@ -25,16 +25,6 @@ class CartShippingMethod
         return $this->shippingMethodCondition->getAttribute('shipping_method')->label;
     }
 
-    public function content()
-    {
-        return $this->shippingMethodCondition->getAttribute('shipping_method')->content;
-    }
-
-    public function address()
-    {
-        return $this->shippingMethodCondition->getAttribute('shipping_method')->address_id;
-    }
-
     public function cost()
     {
         return Money::inDefaultCurrency($this->calculate());
