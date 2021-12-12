@@ -6,6 +6,7 @@ use Modules\Cart\Facades\Cart;
 use Modules\Coupon\Entities\Coupon;
 use Modules\Order\Entities\Order;
 use Modules\Product\Entities\Product;
+use Modules\Support\Money;
 use Modules\User\Entities\User;
 
 function updateLotteryProduct($product, $data, $method){
@@ -339,7 +340,9 @@ function getUserCart($request){
 
         $shippingMethod = getUserShipping($request);
         if($shippingMethod && !is_null($shippingMethod->address_id)) {
-            Cart::addShippingMethod($shippingMethod);
+            $userShipping = \Modules\Shipping\Facades\ShippingMethod::get($shippingMethod->delivery_type);
+            $userShipping->cost = Money::inDefaultCurrency($shippingMethod->amount);
+            Cart::addShippingMethod($userShipping);
         }else{
             Cart::removeShippingMethod();
         }
@@ -369,8 +372,8 @@ function getUserCart($request){
         }
 
         $cartArray["shipping_amount"] = Cart::shippingCost()->amount();
-        $cartArray["shipping_content"] = (Cart::hasShippingMethod()) ? Cart::shippingMethod()->content() : "";
-        $cartArray["shipping_address"] = (Cart::hasShippingMethod()) ? Cart::shippingMethod()->address() : "";
+        $cartArray["shipping_content"] = "";
+        $cartArray["shipping_address"] = "";
         return $cartArray;
     }
 
@@ -585,4 +588,65 @@ function updateSimpleProduct($product, $data){
             "special_price_end"     => $getLottery->to_date
         ]);
     }
+}
+
+function nGeniusAccessToken() {
+    $apikey = env('NETWORK_API_KEY');
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, "https://api-gateway.sandbox.ngenius-payments.com/identity/auth/access-token");
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        "accept: application/vnd.ni-identity.v1+json",
+        "authorization: Basic ".$apikey,
+        "content-type: application/vnd.ni-identity.v1+json"
+    ));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS,  "{\"realmName\":\"ni\"}");
+    $output = json_decode(curl_exec($ch));
+
+    curl_close ($ch);
+
+    return $output;
+}
+
+function nGeniusPaymentUrl($data){
+    $postData = new \StdClass();
+    $postData->action = "PURCHASE";
+    $postData->amount = new \StdClass();
+    $postData->amount->currencyCode = "AED";
+    $postData->amount->value = bcmul(Cart::total()->amount(),100);
+    $postData->merchantAttributes = new \StdClass();
+    $postData->emailAddress = $data["customer_email"];
+    $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/home";
+    $postData->merchantAttributes->skipConfirmationPage = false;
+    $postData->merchantAttributes->merchantOrderReference = $data["user_id"] . "-" . $data["order_id"];
+    if($data["shipping_method"] == "flat_rate") {
+        $postData->billingAddress = new \StdClass();
+        $postData->billingAddress->firstName = $data["billing"]["first_name"];
+        $postData->billingAddress->lastName = $data["billing"]["last_name"];
+        $postData->billingAddress->address1 = $data["billing"]["address_1"];
+        $postData->billingAddress->city = $data["billing"]["city"];
+        $postData->billingAddress->countryCode = $data["billing"]["country"];
+    }
+
+    $outlet = env('NETWORK_OUTLET');
+    $token = $data["access_token"];
+
+    $json = json_encode($postData);
+    $ch = curl_init();
+
+    curl_setopt($ch, CURLOPT_URL, "https://api-gateway.sandbox.ngenius-payments.com/transactions/outlets/".$outlet."/orders");
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        "Authorization: Bearer ".$token,
+        "Content-Type: application/vnd.ni-payment.v2+json",
+        "Accept: application/vnd.ni-payment.v2+json"));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+
+    $output = json_decode(curl_exec($ch));
+
+    curl_close ($ch);
+
+    return $output;
 }

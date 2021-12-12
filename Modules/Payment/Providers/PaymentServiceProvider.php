@@ -3,6 +3,7 @@
 namespace Modules\Payment\Providers;
 
 use Modules\Payment\Gateways\COD;
+use Modules\Payment\Gateways\NGenius;
 use Modules\Payment\Gateways\Paytm;
 use Modules\Payment\Facades\Gateway;
 use Modules\Payment\Gateways\PayPal;
@@ -34,6 +35,7 @@ class PaymentServiceProvider extends ServiceProvider
         $this->registerCashOnDelivery();
         $this->registerBankTransfer();
         $this->registerCheckPayment();
+        $this->registerNGeniusPayment();
     }
 
     private function enabled($paymentMethod)
@@ -98,6 +100,13 @@ class PaymentServiceProvider extends ServiceProvider
     {
         if ($this->enabled('check_payment')) {
             Gateway::register('check_payment', new CheckPayment);
+        }
+    }
+
+    private function registerNGeniusPayment()
+    {
+        if ($this->enabled('ngenius')) {
+            Gateway::register('ngenius', new NGenius);
         }
     }
 }

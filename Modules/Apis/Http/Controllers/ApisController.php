@@ -398,7 +398,7 @@ foreach ($cartArray["items"] as $key1 => $value1){
                     $cartArray["items"][$key1]->product->sold_items = (string) getSoldLottery($product->id);
                     $cartArray["items"][$key1]->product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
                     $cartArray["items"][$key1]->product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
-                    $cartArray["items"][$key1]->product->suppliers = (!is_null($product->supplier->id) && count($product->supplier) > 0) ? $product->supplier : NULL;
+                    $cartArray["items"][$key1]->product->suppliers = ($product->supplier->count() > 0) ? $product->supplier : NULL;
                     $cartArray["items"][$key1]->qty = (string)$value1->qty;
                 }
                 }
@@ -571,7 +571,7 @@ $cartArray["items"][$key1]->qty = (string)$value1->qty;
             array_push($shippingMethods,[
                 "name"  => $value->name,
                 "label" => $value->label,
-                "cost" => $value->cost->amount()
+                "cost" => (string) $value->cost->amount()
             ]);
         }
 
@@ -1036,21 +1036,6 @@ foreach ($products[$key]->translations as $key1=>$tra){
         $user = User::where("id",$request->input('user_id'))->first();
         $userAddress = Address::where("id",$request->input('address'))->first();
 
-        $apikey = env('NETWORK_API_KEY');
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://api-gateway.sandbox.ngenius-payments.com/identity/auth/access-token");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            "accept: application/vnd.ni-identity.v1+json",
-            "authorization: Basic ".$apikey,
-            "content-type: application/vnd.ni-identity.v1+json"
-        ));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS,  "{\"realmName\":\"ni\"}");
-        $output = json_decode(curl_exec($ch));
-        $access_token = $output->access_token;
-        curl_close ($ch);
-
         if(!is_null($request->input('address'))) {
             $request->merge([
                 "customer_email" => $user->email,
@@ -1086,45 +1071,17 @@ foreach ($products[$key]->translations as $key1=>$tra){
             "address_id"    => $request->input("address")
             ])->whereNull("order_id")->update(["order_id" => $order->id]);
 
-        $postData = new \StdClass();
-        $postData->action = "PURCHASE";
-        $postData->amount = new \StdClass();
-        $postData->amount->currencyCode = "AED";
-        $postData->amount->value = bcmul(Cart::total()->amount(),100);
-        $postData->merchantAttributes = new \StdClass();
-        $postData->emailAddress = $user->email;
-        $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/home";
-        $postData->merchantAttributes->skipConfirmationPage = false;
-        $postData->merchantAttributes->merchantOrderReference = $request->input('user_id') . "-" . $order->id;
-        if(!is_null($request->input('address'))) {
-            $postData->billingAddress = new \StdClass();
-            $postData->billingAddress->firstName = $userAddress->first_name;
-            $postData->billingAddress->lastName = $userAddress->last_name;
-            $postData->billingAddress->address1 = $userAddress->address_1;
-            $postData->billingAddress->city = $userAddress->city;
-            $postData->billingAddress->countryCode = $userAddress->country;
+        $gateway = Gateway::get("ngenius");
+
+        try {
+            $response = $gateway->purchase($order, $request);
+        } catch (Exception $e) {
+            $orderService->delete($order);
+
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 403);
         }
-
-        $outlet = env('NETWORK_OUTLET');
-        $token = $access_token;
-
-        $json = json_encode($postData);
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, "https://api-gateway.sandbox.ngenius-payments.com/transactions/outlets/".$outlet."/orders");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            "Authorization: Bearer ".$token,
-            "Content-Type: application/vnd.ni-payment.v2+json",
-            "Accept: application/vnd.ni-payment.v2+json"));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
-
-        $output = json_decode(curl_exec($ch));
-        $order_reference = $output->reference;
-        $order_paypage_url = $output->_links->payment->href;
-
-        curl_close ($ch);
 
         if($request->input("is_direct") == "true") {
             DB::table("user_cart")->where(["user_id" => $request->input('user_id'), "product_type" => 0])->delete();
@@ -1135,8 +1092,8 @@ foreach ($products[$key]->translations as $key1=>$tra){
         DB::table("users_coupons")->where("user_id", $request->input('user_id'))->delete();
         return response()->json([
             'data' => [
-                "order_reference"       => $order_reference,
-                "order_payment_url"     => $order_paypage_url."&slim=true",
+                "order_reference"       => $response["order_reference"],
+                "order_payment_url"     => $response["payment_page_url"]."&slim=true",
             ],
         ]);
     }
@@ -1218,7 +1175,7 @@ foreach ($products[$key]->translations as $key1=>$tra){
                 return response()->json([
                     'data' => [
                         "carrier_name" => null,
-                        "delivery_rate" => $userShipping->cost->amount(),
+                        "delivery_rate" => (string) $userShipping->cost->amount(),
                         "delivery_in_days" => null,
                         "cart_total" => Cart::total()->currency() . " " . number_format((float)Cart::total()->amount(), 2, '.', '')
                     ],

@@ -42,7 +42,7 @@ class SettingTabs extends Tabs
         $this->group('payment_methods', trans('setting::settings.tabs.group.payment_methods'))
             ->add($this->paypal())
             ->add($this->stripe())
-            ->add($this->foloosi())
+            ->add($this->ngenius())
             ->add($this->paytm())
             ->add($this->razorpay())
             ->add($this->instamojo())
@@ -299,20 +299,18 @@ class SettingTabs extends Tabs
         });
     }
 
-    private function foloosi()
+    private function ngenius()
     {
-        return tap(new Tab('foloosi', trans('setting::settings.tabs.foloosi')), function (Tab $tab) {
+        return tap(new Tab('ngenius', trans('setting::settings.tabs.ngenius')), function (Tab $tab) {
             $tab->weight(60);
 
             $tab->fields([
-                'foloosi_enabled',
-                'translatable.foloosi_label',
-                'translatable.foloosi_description',
-                'foloosi_merchant_key',
-                'foloosi_secret_key',
+                'ngenius_enabled',
+                'translatable.ngenius_label',
+                'translatable.ngenius_description',
             ]);
 
-            $tab->view('setting::admin.settings.tabs.foloosi');
+            $tab->view('setting::admin.settings.tabs.ngenius');
         });
     }
 

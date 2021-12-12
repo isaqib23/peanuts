@@ -98,11 +98,9 @@ return [
     'stripe_publishable_key' => 'Publishable Key',
     'stripe_secret_key' => 'Secret Key',
 
-    'foloosi_enabled' => 'Status',
-    'translatable.foloosi_label' => 'Label',
-    'translatable.foloosi_description' => 'Description',
-    'foloosi_merchant_key' => 'Merchant Key',
-    'foloosi_secret_key' => 'Secret Key',
+    'ngenius_enabled' => 'Status',
+    'translatable.ngenius_label' => 'Label',
+    'translatable.ngenius_description' => 'Description',
 
     'paytm_enabled' => 'Status',
     'translatable.paytm_label' => 'Label',

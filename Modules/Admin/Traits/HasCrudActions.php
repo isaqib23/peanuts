@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Modules\Media\Entities\File;
 use Modules\Product\Entities\ProductLottery;
+use Modules\Shipping\Facades\ShippingMethod;
 use Modules\Support\Search\Searchable;
 use Modules\Admin\Ui\Facades\TabManager;
 
@@ -119,13 +120,8 @@ trait HasCrudActions
             $shipping = \DB::table("user_shippings")->where(["order_id" => $entity->id])->first();
             $orderType = "";
             if($shipping){
-                if($shipping->delivery_type == 1){
-                    $orderType = "Donate the product";
-                }elseif($shipping->delivery_type == 2){
-                    $orderType = "Self Pikup";
-                }else{
-                    $orderType = "Delivery on Selected Address";
-                }
+                $getShipping = ShippingMethod::get($shipping->delivery_type);
+                $orderType = $getShipping->label;
             }
             $entity->order_type = $orderType;
         }
