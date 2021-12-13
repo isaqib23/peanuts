@@ -1,0 +1,333 @@
+<?php
+
+namespace Modules\Product\Entities;
+
+use Modules\Suppliers\Entities\Supplier;
+use Modules\Support\Money;
+use Modules\Tag\Entities\Tag;
+use Modules\Media\Entities\File;
+use Modules\Brand\Entities\Brand;
+use Modules\Tax\Entities\TaxClass;
+use Modules\Option\Entities\Option;
+use Modules\Review\Entities\Review;
+use Modules\Support\Eloquent\Model;
+use Modules\Media\Eloquent\HasMedia;
+use Modules\Meta\Eloquent\HasMetaData;
+use Modules\Support\Search\Searchable;
+use Modules\Category\Entities\Category;
+use Modules\Product\Admin\ProductTable;
+use Modules\Support\Eloquent\Sluggable;
+use Modules\FlashSale\Entities\FlashSale;
+use Modules\Support\Eloquent\Translatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Attribute\Entities\ProductAttribute;
+use Modules\User\Entities\User;
+
+class Product extends Model
+{
+    use Translatable,
+        Searchable,
+        Sluggable,
+        HasMedia,
+        HasMetaData,
+        SoftDeletes;
+
+    /**
+     * The relations to eager load on every query.
+     *
+     * @var array
+     */
+    protected $with = ['translations'];
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'brand_id',
+        'tax_class_id',
+        'slug',
+        'sku',
+        'price',
+        'special_price',
+        'special_price_type',
+        'special_price_start',
+        'special_price_end',
+        'selling_price',
+        'manage_stock',
+        'qty',
+        'in_stock',
+        'virtual',
+        'is_active',
+        'new_from',
+        'new_to',
+        'product_type',
+        'is_unlocked',
+        'current_price',
+        'supplier_id'
+    ];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'manage_stock' => 'boolean',
+        'in_stock' => 'boolean',
+        'is_active' => 'boolean',
+    ];
+
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    protected $dates = [
+        'special_price_start',
+        'special_price_end',
+        'new_from',
+        'new_to',
+        'start_date',
+        'end_date',
+        'deleted_at',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'base_image', 'formatted_price', 'rating_percent', 'is_in_stock',
+        'is_out_of_stock', 'is_new', 'has_percentage_special_price', 'special_price_percent',
+    ];
+
+    /**
+     * The attributes that are translatable.
+     *
+     * @var array
+     */
+    protected $translatedAttributes = ['name', 'description', 'prize_description', 'short_description'];
+
+    /**
+     * The attribute that will be slugged.
+     *
+     * @vainstockr string
+     */
+    protected $slugAttribute = 'name';
+
+    /**
+     * Perform any actions required after the model boots.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::saved(function ($product) {
+            if (! empty(request()->all())) {
+                $product->saveRelations(request()->all());
+            }
+
+            $product->withoutEvents(function () use ($product) {
+                $product->update(['selling_price' => $product->getSellingPrice()->amount()]);
+            });
+        });
+
+        static::addActiveGlobalScope();
+    }
+
+    public static function newArrivals($limit)
+    {
+        return static::forCard()
+            ->latest()
+            ->take($limit)
+            ->get();
+    }
+
+    public static function list($ids = [])
+    {
+        return static::select('id')
+            ->withName()
+            ->whereIn('id', $ids)
+            ->when(! empty($ids), function ($query) use ($ids) {
+                $idsString = collect($ids)->filter()->implode(',');
+
+                $query->orderByRaw("FIELD(id, {$idsString})");
+            })
+            ->get()
+            ->mapWithKeys(function ($product) {
+                return [$product->id => $product->name];
+            });
+    }
+
+    public function scopeForCard($query)
+    {
+        $<?php
+
+namespace Modules\Product\Entities;
+
+use Modules\Suppliers\Entities\Supplier;
+use Modules\Support\Money;
+use Modules\Tag\Entities\Tag;
+use Modules\Media\Entities\File;
+use Modules\Brand\Entities\Brand;
+use Modules\Tax\Entities\TaxClass;
+use Modules\Option\Entities\Option;
+use Modules\Review\Entities\Review;
+use Modules\Support\Eloquent\Model;
+use Modules\Media\Eloquent\HasMedia;
+use Modules\Meta\Eloquent\HasMetaData;
+use Modules\Support\Search\Searchable;
+use Modules\Category\Entities\Category;
+use Modules\Product\Admin\ProductTable;
+use Modules\Support\Eloquent\Sluggable;
+use Modules\FlashSale\Entities\FlashSale;
+use Modules\Support\Eloquent\Translatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Attribute\Entities\ProductAttribute;
+use Modules\User\Entities\User;
+
+class Product extends Model
+{
+    use Translatable,
+        Searchable,
+        Sluggable,
+        HasMedia,
+        HasMetaData,
+        SoftDeletes;
+
+    /**
+     * The relations to eager load on every query.
+     *
+     * @var array
+     */
+    protected $with = ['translations'];
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'brand_id',
+        'tax_class_id',
+        'slug',
+        'sku',
+        'price',
+        'special_price',
+        'special_price_type',
+        'special_price_start',
+        'special_price_end',
+        'selling_price',
+        'manage_stock',
+        'qty',
+        'in_stock',
+        'virtual',
+        'is_active',
+        'new_from',
+        'new_to',
+        'product_type',
+        'is_unlocked',
+        'current_price',
+        'supplier_id'
+    ];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'manage_stock' => 'boolean',
+        'in_stock' => 'boolean',
+        'is_active' => 'boolean',
+    ];
+
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    protected $dates = [
+        'special_price_start',
+        'special_price_end',
+        'new_from',
+        'new_to',
+        'start_date',
+        'end_date',
+        'deleted_at',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'base_image', 'formatted_price', 'rating_percent', 'is_in_stock',
+        'is_out_of_stock', 'is_new', 'has_percentage_special_price', 'special_price_percent',
+    ];
+
+    /**
+     * The attributes that are translatable.
+     *
+     * @var array
+     */
+    protected $translatedAttributes = ['name', 'description', 'prize_description', 'short_description'];
+
+    /**
+     * The attribute that will be slugged.
+     *
+     * @vainstockr string
+     */
+    protected $slugAttribute = 'name';
+
+    /**
+     * Perform any actions required after the model boots.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::saved(function ($product) {
+            if (! empty(request()->all())) {
+                $product->saveRelations(request()->all());
+            }
+
+            $product->withoutEvents(function () use ($product) {
+                $product->update(['selling_price' => $product->getSellingPrice()->amount()]);
+            });
+        });
+
+        static::addActiveGlobalScope();
+    }
+
+    public static function newArrivals($limit)
+    {
+        return static::forCard()
+            ->latest()
+            ->take($limit)
+            ->get();
+    }
+
+    public static function list($ids = [])
+    {
+        return static::select('id')
+            ->withName()
+            ->whereIn('id', $ids)
+            ->when(! empty($ids), function ($query) use ($ids) {
+                $idsString = collect($ids)->filter()->implode(',');
+
+                $query->orderByRaw("FIELD(id, {$idsString})");
+            })
+            ->get()
+            ->mapWithKeys(function ($product) {
+                return [$product->id => $product->name];
+            });
+    }
+
+    public function scopeForCard($query)
+    {
+        $

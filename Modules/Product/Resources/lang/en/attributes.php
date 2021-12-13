@@ -4,6 +4,7 @@ return [
     'name' => 'Name',
     'slug' => 'URL',
     'description' => 'Description',
+    'prize_description' => 'Prize Description',
     'short_description' => 'Short Description',
     'brand_id' => 'Brand',
     'categories' => 'Categories',

@@ -38,7 +38,7 @@ class ProductTabs extends Tabs
         return tap(new Tab('general', trans('product::products.tabs.general')), function (Tab $tab) {
             $tab->active();
             $tab->weight(5);
-            $tab->fields(['name', 'description', 'brand_id', 'tax_class_id', 'is_active',"product_type"]);
+            $tab->fields(['name', 'description', 'prize_description' ,'brand_id', 'tax_class_id', 'is_active',"product_type"]);
             $tab->view('product::admin.products.tabs.general', [
                 'brands' => $this->brands(),
                 'categories' => Category::treeList(),

@@ -123,7 +123,7 @@ class ApisController extends Controller
      * @return JsonResponse
      */
     public function register(SignupRequest $request){
-        $user = $this->auth->register($request->only([
+        $user = $this->auth->registerAndActivate($request->only([
             'first_name',
             'last_name',
             'email',
@@ -160,7 +160,8 @@ class ApisController extends Controller
 
         event(new CustomerRegistered($user));
 
-        $code = $this->auth->createActivation($users);
+
+        /*$code = $this->auth->createActivation($users);
         $email = $request->email;
 
         $maildata = [
@@ -175,6 +176,11 @@ class ApisController extends Controller
             'message' => trans('user::messages.users.account_created'),
             "user" => $users
         ],200);
+        */
+
+        return response()->json([
+            'data' => $user
+        ]);
     }
 
     /**
@@ -215,7 +221,7 @@ class ApisController extends Controller
                 $products[$key]->sold_items = (string) getSoldLottery($value->id);
                 $products[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $value->id);
                 $products[$key]->thumbnail_image = (!is_null($value->base_image->path)) ? $value->base_image : NULL;
-                $products[$key]->suppliers = (!is_null($value->supplier->id)) ? $value->supplier : NULL;
+                $products[$key]->suppliers = ($value->supplier->count() > 1) ? $value->supplier : NULL;
                 $products[$key]->sold_tickets = OrderTicket::where(["product_id" => $value->id, "status" => "sold"])->count();
                 $products[$key]->total_tickets = OrderTicket::where(["product_id" => $value->id])->count();
                 $products[$key]->is_out_of_stock = (getRemainingTicketsCount($value->id) > 0) ? false : true;
@@ -261,7 +267,7 @@ class ApisController extends Controller
         $product->sold_items = (string) getSoldLottery($product->id);
         $product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
         $product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
-        $product->suppliers = (!is_null($product->supplier->id)) ? $product->supplier : NULL;
+        $product->suppliers = ($product->supplier->count() > 1) ? $product->supplier : NULL;
         return response()->json([
             'data' => $product,
         ]);
@@ -398,7 +404,7 @@ foreach ($cartArray["items"] as $key1 => $value1){
                     $cartArray["items"][$key1]->product->sold_items = (string) getSoldLottery($product->id);
                     $cartArray["items"][$key1]->product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
                     $cartArray["items"][$key1]->product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
-                    $cartArray["items"][$key1]->product->suppliers = ($product->supplier->count() > 0) ? $product->supplier : NULL;
+                    $cartArray["items"][$key1]->product->suppliers = ($product->supplier->count() > 1) ? $product->supplier : NULL;
                     $cartArray["items"][$key1]->qty = (string)$value1->qty;
                 }
                 }
@@ -449,7 +455,7 @@ foreach ($cartArray["items"] as $key1 => $value1){
                         $cartArray["items"][$key1]->product->sold_items = (string)getSoldLottery($product->id);
                         $cartArray["items"][$key1]->product->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $product->id);
                         $cartArray["items"][$key1]->product->thumbnail_image = (!is_null($product->base_image->path)) ? $product->base_image : NULL;
-                        $cartArray["items"][$key1]->product->suppliers = (!is_null($product->supplier->id)) ? $product->supplier : NULL;
+                        $cartArray["items"][$key1]->product->suppliers = ($product->supplier->count() > 1) ? $product->supplier : NULL;
 $cartArray["items"][$key1]->qty = (string)$value1->qty;
                     }
                 }
@@ -652,7 +658,7 @@ $cartArray["items"][$key1]->qty = (string)$value1->qty;
             $data[$key]->sold_items = (string) getSoldLottery($value->id);
             $data[$key]->is_added_to_wishlist = isAddedToWishlist($request->input('user_id'), $value->id);
             $data[$key]->thumbnail_image = (!is_null($value->base_image->path)) ? $value->base_image : NULL;
-            $data[$key]->suppliers = (!is_null($value->supplier->id)) ? $value->supplier : NULL;
+            $data[$key]->suppliers = ($value->supplier->count() > 1) ? $value->supplier : NULL;
             $data[$key]->sold_tickets = OrderTicket::where(["product_id" => $value->id, "status" => "sold"])->count();
             $data[$key]->total_tickets = OrderTicket::where(["product_id" => $value->id])->count();
             $data[$key]->is_out_of_stock = (getRemainingTicketsCount($value->id) > 0) ? false : true;
@@ -761,7 +767,7 @@ $cartArray["items"][$key1]->qty = (string)$value1->qty;
      * @return JsonResponse
      */
     public function slides(){
-        $slides = (new Slider)->first()->slides->pluck('file');
+        $slides = (new Slider)->orderby("id","desc")->first()->slides->pluck('file');
 
         return response()->json([
             "data" => $slides
@@ -1249,14 +1255,14 @@ foreach ($products[$key]->translations as $key1=>$tra){
             $user_id = strtok($callBackData, '-');
             $orderId = substr($callBackData, strpos($callBackData, "-") + 1);
 
-            updateProductLottery($orderId);
-            updateProductTickets($orderId);
-
             $order = Order::findOrFail($orderId);
 
             $order->storeFoloosiTransaction($output->order->reference);
 
             $order->update(['status' => "completed"]);
+
+            updateProductLottery($orderId);
+            updateProductTickets($orderId);
         }
     }
 

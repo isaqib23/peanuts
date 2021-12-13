@@ -109,7 +109,7 @@ class Product extends Model
      *
      * @var array
      */
-    protected $translatedAttributes = ['name', 'description', 'prize_description', 'short_description'];
+    protected $translatedAttributes = ['name', 'description', 'short_description'];
 
     /**
      * The attribute that will be slugged.
@@ -194,7 +194,7 @@ class Product extends Model
 
     public function scopeWithName($query)
     {
-        $query->with('translations:id,product_id,locale,name,description,prize_description,short_description');
+        $query->with('translations:id,product_id,locale,name,description,short_description');
     }
 
     public function scopeWithBaseImage($query)
@@ -405,10 +405,7 @@ class Product extends Model
     {
         return $this->getAttribute('attributes')->isNotEmpty();
     }
-    public function hasPrizeDescription()
-    {
-        return $this->prize_description->isNotEmpty();
-    }
+
     public function hasAnyOption()
     {
         return $this->options->isNotEmpty();
@@ -580,7 +577,6 @@ class Product extends Model
     {
         return array_except($this->toArray(), [
             'description',
-            'prize_description',
             'short_description',
             'translations',
             'categories',
@@ -647,7 +643,8 @@ class Product extends Model
 
         $translations = $this->translations()
             ->withoutGlobalScope('locale')
-            ->get(['name', 'description', 'prize_description', 'short_description']);
+            ->get(['name', 'description', 'short_description']);
+
         return ['id' => $this->id, 'translations' => $translations];
     }
 

@@ -227,6 +227,9 @@ trait HasCrudActions
         if(in_array($this->getRoutePrefix(), $allowedRoutes)){
             ProductLottery::whereIn('product_id', explode(',', $ids))->delete();
             ProductLottery::whereIn('link_product', explode(',', $ids))->delete();
+            \DB::table("votes")->whereIn('product_1', explode(',', $ids))->delete();
+            \DB::table("votes")->whereIn('product_2', explode(',', $ids))->delete();
+            \DB::table("user_cart")->whereIn('product_id', explode(',', $ids))->delete();
         }
         //admin.products.destroy
         $this->getModel()

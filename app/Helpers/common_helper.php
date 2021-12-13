@@ -97,7 +97,8 @@ function updateProductLottery($orderId){
 
                 (new \Modules\Product\Entities\Product)->where("id",$getLottery->link_product)->update([
                     "current_price"     => $currentPrice,
-                    "special_price"     => $currentPrice
+                    "special_price"     => $currentPrice,
+                    "selling_price"     => $currentPrice,
                 ]);
             }
         }
@@ -105,7 +106,14 @@ function updateProductLottery($orderId){
 }
 
 function getSoldLottery($product_id) {
-    return \Modules\Order\Entities\OrderProduct::where('product_id',$product_id)->sum('qty');
+    $qty = \DB::select("
+        SELECT SUM(order_products.qty) AS qty
+        FROM order_products
+        JOIN orders ON orders.id = order_products.order_id
+        WHERE orders.status = 'completed' AND order_products.product_id = ".$product_id."
+    ");
+
+    return (int)$qty['0']->qty;
 }
 
 function isAddedToWishlist($userId, $productId){
@@ -428,9 +436,20 @@ function getdirectCart($request){
 
         $shippingMethod = getUserShipping($request);
         if($shippingMethod && !is_null($shippingMethod->address_id)) {
-            Cart::addShippingMethod($shippingMethod);
+            $userShipping = \Modules\Shipping\Facades\ShippingMethod::get($shippingMethod->delivery_type);
+            $userShipping->cost = Money::inDefaultCurrency($shippingMethod->amount);
+            Cart::addShippingMethod($userShipping);
         }else{
             Cart::removeShippingMethod();
+        }
+
+        // check user coupon
+        $getUserCoupon = \DB::table('users_coupons')->where("user_id",$request->input("user_id"))->first();
+        if($getUserCoupon) {
+            $coupon = Coupon::where("code",$getUserCoupon->coupon_code)->first();
+            Cart::applyCoupon($coupon);
+        }else{
+            Cart::removeCoupon();
         }
 
         $cartArray = Cart::toArray();
@@ -449,8 +468,8 @@ function getdirectCart($request){
         }
 
         $cartArray["shipping_amount"] = Cart::shippingCost()->amount();
-        $cartArray["shipping_content"] = (Cart::hasShippingMethod()) ? Cart::shippingMethod()->content() : "";
-        $cartArray["shipping_address"] = (Cart::hasShippingMethod()) ? Cart::shippingMethod()->address() : "";
+        $cartArray["shipping_content"] = "";
+        $cartArray["shipping_address"] = "";
         return $cartArray;
     }
 
@@ -584,6 +603,7 @@ function updateSimpleProduct($product, $data){
             "price"                 => $getLottery->initial_price,
             "current_price"         => $getLottery->initial_price,
             "special_price"         => $getLottery->current_price,
+            "selling_price"         => $getLottery->current_price,
             "special_price_start"   => $getLottery->from_date,
             "special_price_end"     => $getLottery->to_date
         ]);
@@ -617,7 +637,7 @@ function nGeniusPaymentUrl($data){
     $postData->amount->value = bcmul(Cart::total()->amount(),100);
     $postData->merchantAttributes = new \StdClass();
     $postData->emailAddress = $data["customer_email"];
-    $postData->merchantAttributes->redirectUrl = "https://itspeanutsdev.com/home";
+    $postData->merchantAttributes->redirectUrl = "https://pnutso.com";
     $postData->merchantAttributes->skipConfirmationPage = false;
     $postData->merchantAttributes->merchantOrderReference = $data["user_id"] . "-" . $data["order_id"];
     if($data["shipping_method"] == "flat_rate") {

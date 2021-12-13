@@ -4,7 +4,7 @@
 
 {{ Form::text('name', trans('product::attributes.name'), $errors, $product, ['labelCol' => 2, 'required' => true]) }}
 {{ Form::wysiwyg('description', trans('product::attributes.description'), $errors, $product, ['labelCol' => 2, 'required' => true]) }}
-
+{{ Form::wysiwyg('prize_description', trans('product::attributes.prize_description'), $errors, $product, ['labelCol' => 2, 'required' => false]) }}
 <div class="row">
     <div class="col-md-8">
         {{ Form::select('product_type', trans('product::attributes.product_type'), $errors, $types, $product) }}

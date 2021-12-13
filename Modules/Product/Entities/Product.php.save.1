@@ -114,7 +114,7 @@ class Product extends Model
     /**
      * The attribute that will be slugged.
      *
-     * @var string
+     * @vainstockr string
      */
     protected $slugAttribute = 'name';
 
@@ -580,7 +580,7 @@ class Product extends Model
     {
         return array_except($this->toArray(), [
             'description',
-            'prize_description',
+'prize_description',
             'short_description',
             'translations',
             'categories',
@@ -648,6 +648,7 @@ class Product extends Model
         $translations = $this->translations()
             ->withoutGlobalScope('locale')
             ->get(['name', 'description', 'prize_description', 'short_description']);
+
         return ['id' => $this->id, 'translations' => $translations];
     }
 
